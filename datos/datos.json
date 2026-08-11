@@ -1,0 +1,86 @@
+{
+ "avisos": [
+  "1 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
+ ],
+ "corte": "2026-08-06",
+ "generado": "2026-08-11T09:15:00-06:00",
+ "geo": {},
+ "instrumentos": {
+  "ben": {
+   "porCom": {
+    "1": 12,
+    "12": 13,
+    "13": 21,
+    "14": 5,
+    "17": 1,
+    "2": 10,
+    "3": 12,
+    "4": 12
+   },
+   "porComDia": {
+    "12|2026-08-04": 13,
+    "13|2026-08-04": 1,
+    "13|2026-08-05": 20,
+    "14|2026-08-03": 5,
+    "17|2026-07-31": 1,
+    "1|2026-08-06": 12,
+    "2|2026-08-05": 1,
+    "2|2026-08-06": 9,
+    "3|2026-08-03": 12,
+    "4|2026-08-03": 1,
+    "4|2026-08-04": 11
+   },
+   "porEnc": {},
+   "sinComunidad": 0,
+   "sinConsent": 0,
+   "sinFecha": 0,
+   "total": 86
+  },
+  "fun": {
+   "porCom": {},
+   "porComDia": {},
+   "porEnc": {},
+   "sinComunidad": 0,
+   "sinConsent": 1,
+   "sinFecha": 0,
+   "total": 0
+  },
+  "ins": {
+   "porCom": {
+    "(sin comunidad)": 1
+   },
+   "porComDia": {
+    "(sin comunidad)|2026-07-31": 1
+   },
+   "porEnc": {},
+   "sinComunidad": 1,
+   "sinConsent": 0,
+   "sinFecha": 0,
+   "total": 1
+  },
+  "lid": {
+   "porCom": {
+    "1": 2,
+    "12": 1,
+    "13": 1,
+    "14": 1,
+    "2": 1,
+    "4": 1
+   },
+   "porComDia": {
+    "12|2026-08-04": 1,
+    "13|2026-08-04": 1,
+    "14|2026-08-03": 1,
+    "1|2026-07-31": 1,
+    "1|2026-08-06": 1,
+    "2|2026-08-04": 1,
+    "4|2026-08-04": 1
+   },
+   "porEnc": {},
+   "sinComunidad": 0,
+   "sinConsent": 0,
+   "sinFecha": 0,
+   "total": 7
+  }
+ }
+}
