@@ -206,6 +206,32 @@ svg.ch .ax{stroke:var(--axis);stroke-width:1}
 footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6;max-width:100ch}
 footer p{margin:0 0 8px}
 footer b{color:var(--ink-2)}
+
+/* ---- modal de registro ------------------------------------------
+   Vive dentro del tablero: no abre una pestaña nueva ni muestra la
+   planilla. Solo aparece si hay endpoint configurado.            */
+.reg-bd{position:fixed;inset:0;background:rgba(13,22,31,.62);display:none;
+        align-items:center;justify-content:center;z-index:50;padding:20px}
+.reg-bd.on{display:flex}
+.reg{background:var(--surface);border:1px solid var(--ring);border-radius:14px;
+     width:100%;max-width:460px;max-height:90vh;overflow:auto;padding:22px 24px 24px}
+.reg h3{font-size:16px;margin:0 0 4px}
+.reg .sub{margin:0 0 16px}
+.reg label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+           color:var(--muted);margin:13px 0 5px}
+.reg select,.reg input,.reg textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;
+  background:var(--plane);color:var(--ink);border:1px solid var(--ring);border-radius:8px;padding:9px 11px}
+.reg select:focus,.reg input:focus,.reg textarea:focus{outline:none;border-color:var(--prev)}
+.reg textarea{resize:vertical;min-height:56px}
+.reg .fila2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reg .pie{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;align-items:center}
+.reg .msg{font-size:12.5px;margin-top:14px;padding:9px 12px;border-radius:0 6px 6px 0;display:none}
+.reg .msg.on{display:block}
+.reg .msg.ok{background:color-mix(in srgb,var(--ok) 12%,transparent);border-left:3px solid var(--ok)}
+.reg .msg.err{background:var(--real-wash);border-left:3px solid var(--crit)}
+.reg .cerrar{background:none;border:none;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
+.reg .meta-act{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+@media(max-width:520px){ .reg .fila2{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -336,6 +362,50 @@ footer b{color:var(--ink-2)}
 </div>
 
 <div class="tip" id="tip"></div>
+
+<!-- modal de registro; el botón que lo abre se inyecta en la sección 04
+     solo si hay endpoint configurado -->
+<div class="reg-bd" id="reg-bd">
+  <div class="reg" role="dialog" aria-modal="true" aria-labelledby="reg-tit">
+    <h3 id="reg-tit">Registrar aplicación</h3>
+    <p class="sub">Actualiza el avance de un instrumento cualitativo. El cambio queda
+      registrado con fecha y responsable.</p>
+
+    <label for="reg-bloque">Tipo de instrumento</label>
+    <select id="reg-bloque"></select>
+
+    <label for="reg-nombre">Aplicación</label>
+    <select id="reg-nombre"></select>
+    <div class="meta-act" id="reg-estado"></div>
+
+    <div class="fila2">
+      <div>
+        <label for="reg-cant">Realizadas</label>
+        <input type="number" id="reg-cant" min="0" step="1" value="1">
+      </div>
+      <div>
+        <label for="reg-fecha">Fecha</label>
+        <input type="date" id="reg-fecha">
+      </div>
+    </div>
+
+    <label for="reg-quien">Quién reporta</label>
+    <input type="text" id="reg-quien" placeholder="Nombre y apellido" maxlength="80">
+
+    <label for="reg-notas">Notas (opcional)</label>
+    <textarea id="reg-notas" maxlength="300" placeholder="Sede, participantes, observaciones…"></textarea>
+
+    <label for="reg-codigo">Código de registro</label>
+    <input type="password" id="reg-codigo" autocomplete="off" placeholder="••••••">
+
+    <div class="msg" id="reg-msg"></div>
+
+    <div class="pie">
+      <button class="cerrar" id="reg-cancelar">Cancelar</button>
+      <button class="act" id="reg-enviar" style="border:none;cursor:pointer">Registrar</button>
+    </div>
+  </div>
+</div>
 <script>
 /* ==================================================================
    FUENTE DE DATOS EN VIVO
@@ -369,6 +439,13 @@ const FUENTE_JSON = qs.get('datos') || 'datos/datos.json';
 
    Override para pruebas: ?cuali=URL_DEL_CSV
    ------------------------------------------------------------------ */
+/* Endpoint del receptor de registros (Apps Script publicado como
+   aplicación web). Vacío = el tablero no muestra el botón de registro
+   y queda solo de lectura. El código de registro NO va acá: se valida
+   del lado del servidor, en el Apps Script. */
+const ENDPOINT_REGISTRO = qs.get('reg') ||
+  "https://script.google.com/macros/s/AKfycbzBEYJtpyjQjO4VFGEpjiaWiMdD8z22uZ5s5RWtU0PGuQhTFJdBcFhX-Nmqaw3BkHx2/exec";
+
 const FUENTE_CUALI = qs.get('cuali') ||
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRjVjvwRLfps8qFy3UrIGJZkAZHA-aUeiZgvwiAW0qMjgX9YCPUs6R19JKOIC4S_FCzdYGuC_jncRwK/pub?gid=309116880&single=true&output=csv";
 
@@ -987,6 +1064,133 @@ function carga(){
 }
 
 /* ==================================================================
+   REGISTRO DE APLICACIONES
+   ------------------------------------------------------------------
+   Un formulario dentro del tablero, no una planilla embebida ni una
+   pestaña nueva. El código de registro viaja al servidor pero no vive
+   acá: validarlo en esta página sería teatro, porque cualquiera puede
+   leer el código fuente. Quien decide si es válido es el Apps Script.
+
+   Si no hay endpoint configurado, nada de esto se muestra y el
+   tablero queda solo de lectura.
+   ================================================================== */
+const REG = {
+  items(){
+    const L=[];
+    CFG.gf.forEach(x=>L.push({b: x.t==='fun'?'Grupo focal funcionarios':'Grupo focal beneficiarios',
+                              n:x.n, meta:1, log:x.log, f:x.f}));
+    CFG.hv.forEach(x=>L.push({b:'Hoja de vida',  n:x.n, meta:1, log:x.log, f:x.f}));
+    CFG.obs.forEach(x=>L.push({b:'Observación',  n:x.n, meta:1, log:x.log, f:null}));
+    CFG.act.forEach(x=>L.push({b:'Entrevista a actores', n:x.g, meta:x.meta, log:x.log, f:null}));
+    return L;
+  },
+  llenarBloques(){
+    const sel=$('#reg-bloque'); const vistos=[];
+    REG.items().forEach(i=>{ if(!vistos.includes(i.b)) vistos.push(i.b) });
+    sel.innerHTML = vistos.map(b=>'<option>'+b+'</option>').join('');
+    REG.llenarNombres();
+  },
+  llenarNombres(){
+    const b=$('#reg-bloque').value;
+    const L=REG.items().filter(i=>i.b===b);
+    $('#reg-nombre').innerHTML = L.map(i=>'<option>'+i.n.replace(/</g,'&lt;')+'</option>').join('');
+    REG.mostrarEstado();
+  },
+  actual(){
+    const b=$('#reg-bloque').value, n=$('#reg-nombre').value;
+    return REG.items().find(i=>i.b===b && i.n===n);
+  },
+  mostrarEstado(){
+    const i=REG.actual(); if(!i) return;
+    $('#reg-estado').textContent = 'Registrado hasta ahora: '+i.log+' de '+i.meta
+      + (i.f? ' · agendada '+dm(i.f) : ' · sin fecha en el calendario');
+    const c=$('#reg-cant'); c.max=i.meta;
+    c.value = Math.min(i.meta, (i.log||0)+1);
+    if(i.f) $('#reg-fecha').value = i.f;
+  },
+  msg(txt, clase){
+    const m=$('#reg-msg'); m.textContent=txt; m.className='msg on '+clase;
+  },
+  abrir(){
+    $('#reg-msg').className='msg';
+    $('#reg-codigo').value='';
+    REG.llenarBloques();
+    $('#reg-bd').classList.add('on');
+    setTimeout(()=>$('#reg-bloque').focus(),60);
+  },
+  cerrar(){ $('#reg-bd').classList.remove('on') },
+
+  async enviar(){
+    const i=REG.actual();
+    const cant=parseInt($('#reg-cant').value,10);
+    const codigo=$('#reg-codigo').value.trim();
+    const quien=$('#reg-quien').value.trim();
+
+    if(!i) return REG.msg('Elegí una aplicación.','err');
+    if(isNaN(cant) || cant<0)   return REG.msg('La cantidad no es válida.','err');
+    if(cant>i.meta)             return REG.msg('La cantidad supera la meta ('+i.meta+').','err');
+    if(!quien)                  return REG.msg('Indicá quién reporta.','err');
+    if(!codigo)                 return REG.msg('Falta el código de registro.','err');
+
+    const b=$('#reg-enviar'); b.textContent='Registrando…'; b.style.pointerEvents='none';
+    try{
+      /* text/plain evita el preflight CORS: con application/json el
+         navegador manda un OPTIONS que Apps Script no responde. */
+      const r = await fetch(ENDPOINT_REGISTRO, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ bloque:i.b, nombre:i.n, realizadas:cant,
+                               fecha:$('#reg-fecha').value||'', quien,
+                               notas:$('#reg-notas').value.trim(), codigo })
+      });
+      const j = await r.json();
+      if(!j.ok) return REG.msg(j.error || 'No se pudo registrar.','err');
+
+      REG.msg('Registrado · '+j.mensaje+'. El tablero se actualiza en unos minutos.','ok');
+      $('#reg-codigo').value='';
+      /* refresco optimista para no esperar la caché de Google */
+      const it = REG.items().find(x=>x.b===i.b && x.n===i.n);
+      if(it) it.log = cant;
+      REG.aplicarLocal(i.b, i.n, cant);
+      pintar();
+      setTimeout(REG.cerrar, 2200);
+    }catch(e){
+      REG.msg('No se pudo contactar al servidor. Revisá la conexión.','err');
+    }finally{
+      b.textContent='Registrar'; b.style.pointerEvents='';
+    }
+  },
+
+  /* refleja el cambio en memoria para que el tablero no muestre el
+     valor viejo mientras Google refresca el CSV publicado */
+  aplicarLocal(bloque, nombre, cant){
+    const set = a => a.forEach(x=>{ if((x.n||x.g)===nombre) x.log=cant });
+    if(bloque.startsWith('Grupo focal'))       set(CFG.gf);
+    else if(bloque==='Hoja de vida')           set(CFG.hv);
+    else if(bloque==='Observación')            set(CFG.obs);
+    else if(bloque==='Entrevista a actores')   set(CFG.act);
+  },
+
+  montar(){
+    if(!ENDPOINT_REGISTRO) return;           /* sin endpoint, solo lectura */
+    /* pintar() corre en cada repintado; el botón se monta una sola vez */
+    if(REG._montado) return;
+    REG._montado = true;
+    const cont=$('#nota-cuali');
+    if(cont) cont.insertAdjacentHTML('beforebegin',
+      '<div class="acts" style="margin-top:16px"><button class="act" id="reg-abrir" '
+      +'style="border:none;cursor:pointer">Registrar aplicación</button></div>');
+    $('#reg-abrir')?.addEventListener('click', REG.abrir);
+    $('#reg-cancelar').addEventListener('click', REG.cerrar);
+    $('#reg-enviar').addEventListener('click', REG.enviar);
+    $('#reg-bloque').addEventListener('change', REG.llenarNombres);
+    $('#reg-nombre').addEventListener('change', REG.mostrarEstado);
+    $('#reg-bd').addEventListener('click', e=>{ if(e.target.id==='reg-bd') REG.cerrar() });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') REG.cerrar() });
+  }
+};
+
+/* ==================================================================
    PINTAR
    ================================================================== */
 function pintar(){
@@ -1002,6 +1206,7 @@ function pintar(){
          +'cierra en '+fmt(D.meta)+'.'
        : '');
   paneles(); instrumentos(); mapa(); tablaComunidades(); carga();
+  REG.montar();
   $('#lnk-kobo').href = KOBO.ben;
   $('#lnk-drive').href = DRIVE;
   $('#pie').innerHTML = 'Datos al '+larga(CFG.corte)
