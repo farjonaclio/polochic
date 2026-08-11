@@ -1,0 +1,71 @@
+# ==================================================================
+# PUENTE KOBOTOOLBOX -> datos/datos.json
+# CliO Consulting · Evaluación final Valle del Polochic
+# ------------------------------------------------------------------
+# Corre cada 30 minutos, consulta la API de Kobo con el token guardado
+# en Secrets, y hace commit de datos/datos.json solo si algo cambió.
+# El token nunca llega al repositorio: existe únicamente dentro del
+# runner, en tiempo de ejecución.
+#
+# Se puede disparar a mano desde la pestaña Actions -> Actualizar datos
+# desde Kobo -> Run workflow.
+# ==================================================================
+
+name: Actualizar datos desde Kobo
+
+on:
+  schedule:
+    # Cada 30 minutos. GitHub programa en UTC y puede atrasar la corrida
+    # unos minutos si la cola está cargada; para un tablero de monitoreo
+    # de campo es irrelevante.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:        # botón manual en la pestaña Actions
+  push:
+    branches: [main]
+    paths:
+      - "scripts/puente_kobo.py"
+      - ".github/workflows/actualizar.yml"
+
+# Permiso de escritura para que el runner pueda hacer commit del JSON.
+permissions:
+  contents: write
+
+# Si una corrida se solapa con la anterior, se cancela la vieja.
+concurrency:
+  group: puente-kobo
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # El script usa solo la biblioteca estándar: no hay dependencias
+      # que instalar ni que puedan romperse por una versión nueva.
+      - name: Consultar Kobo y agregar
+        env:
+          KOBO_TOKEN: ${{ secrets.KOBO_TOKEN }}
+        run: python3 scripts/puente_kobo.py
+
+      - name: Publicar si hubo cambios
+        run: |
+          git config user.name  "puente-kobo[bot]"
+          git config user.email "puente-kobo@users.noreply.github.com"
+          git add datos/datos.json
+          if git diff --staged --quiet; then
+            echo "Sin cambios respecto de la corrida anterior."
+            exit 0
+          fi
+          CORTE=$(python3 -c "import json;print(json.load(open('datos/datos.json'))['corte'])")
+          TOTAL=$(python3 -c "import json;d=json.load(open('datos/datos.json'));print(sum(i['total'] for i in d['instrumentos'].values()))")
+          git commit -m "datos: corte ${CORTE} · ${TOTAL} registros válidos"
+          git push
