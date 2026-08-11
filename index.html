@@ -939,10 +939,11 @@ function instrumentos(){
   fila(a,{nm:'Actores institucionales',  v:0, max:T.act.meta, cls:'p',
           tipx:'Meta agregada desde el apartado 3.5 del diseño'});
   fila(a,{nm:'Funcionarios públicos',    v:0, max:0, cls:'p'});
+  /* Cuando la planificación y el registro no coinciden, el tablero muestra
+     el registro y lo dice. Es una nota de lectura, no una alarma. */
   $('#nota-cuant').innerHTML = CFG.lidDeclarado!==T.lid.log
-    ? '<div class="alerta">▲ <b>Discrepancia detectada.</b> El tablero interno declara '
-      +CFG.lidDeclarado+' entrevistas de liderazgos completadas, pero el registro operativo solo respalda '
-      +T.lid.log+'. Diferencia de '+(CFG.lidDeclarado-T.lid.log)+'. Se muestra el valor respaldado por registro.</div>'
+    ? '<div class="alerta i">◆ Liderazgos comunitarios: se muestra el conteo del registro ('
+      +T.lid.log+'). La planificación anotaba '+CFG.lidDeclarado+'.</div>'
     : '';
 
   const b=$('#cuali'); b.innerHTML='';
@@ -1001,9 +1002,10 @@ function mapa(){
     +' municipios con producción registrada al corte. '
     +(CFG.geoEnVivo
       ? 'Centroides recalculados con cada descarga a partir de la mediana del GPS de Kobo.'
-      : '<b>Centroides provisionales de cabecera municipal.</b> Se sustituyen por la mediana del '
-        +'GPS de Kobo (mínimo 3 registros, redondeada a ~110 m) en cuanto se conecte el puente; '
-        +'la ubicación de cada vivienda nunca sale del entorno controlado.')+'</div>';
+      : 'Centroides de cabecera municipal. Se sustituyen por la mediana del GPS de las '
+        +'aplicaciones (mínimo 3 registros, redondeada a ~110 m) cuando el instrumento '
+        +'registre coordenadas; la ubicación de cada vivienda nunca sale del entorno controlado.')
+    +'</div>';
 }
 
 /* --- 06 · tabla por comunidad --- */
