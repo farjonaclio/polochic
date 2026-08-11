@@ -356,6 +356,21 @@ footer b{color:var(--ink-2)}
 const qs = new URLSearchParams(location.search);
 const FUENTE_JSON = qs.get('datos') || 'datos/datos.json';
 
+/* ------------------------------------------------------------------
+   SEGUIMIENTO CUALITATIVO
+   Grupos focales, hojas de vida, observaciones y entrevistas a actores
+   no tienen formulario de Kobo: los aplica el equipo en terreno y los
+   reporta la coordinación. Se cargan desde una planilla de Google
+   publicada como CSV, para que la actualización no dependa de tocar
+   este archivo.
+
+   Si la planilla no responde, el tablero conserva la instantánea
+   embebida más abajo y lo declara. Nunca se queda en blanco.
+
+   Override para pruebas: ?cuali=URL_DEL_CSV
+   ------------------------------------------------------------------ */
+const FUENTE_CUALI = qs.get('cuali') || "";
+
 const KOBO = {
   ben:'https://ee-eu.kobotoolbox.org/x/M4SCCiH0',
   lid:'https://ee-eu.kobotoolbox.org/x/6TfpL1YN',
@@ -376,6 +391,8 @@ const CFG = {
   /* calendario vigente: distribución de Pilar Maldonado del 11-ago-2026 */
   encuestadores : 2,
   diasBen : null,       /* serie diaria real; la llena el puente */
+  cualiVivo : false,
+  cualiIgnoradas : 0,
   vivo : false,          /* lo pone en true la carga del puente */
   avisosPuente : [],
   reconocidas : 0,
@@ -1053,20 +1070,101 @@ function aplicarVivo(J){
   return J;
 }
 
+/* ------------------------------------------------------------------
+   Lector de CSV. Máquina de estados mínima: respeta comillas, comillas
+   escapadas ("") y saltos de línea dentro de celda, y quita el BOM que
+   antepone Google. Un split(',') falla en la primera comunidad que
+   lleve coma en el nombre —y hay varias.
+   ------------------------------------------------------------------ */
+function leerCSV(txt){
+  txt = txt.replace(/^\uFEFF/, '');
+  const filas=[]; let f=[], c='', q=false;
+  for(let i=0;i<txt.length;i++){
+    const ch=txt[i];
+    if(q){
+      if(ch==='"'){ if(txt[i+1]==='"'){c+='"';i++} else q=false }
+      else c+=ch;
+    } else if(ch==='"') q=true;
+    else if(ch===','){ f.push(c); c='' }
+    else if(ch==='\n'){ f.push(c); filas.push(f); f=[]; c='' }
+    else if(ch!=='\r') c+=ch;
+  }
+  if(c||f.length){ f.push(c); filas.push(f) }
+  return filas.filter(x=>x.some(v=>v.trim()!==''));
+}
+
+/* Convierte la planilla en los bloques que el tablero ya sabe pintar.
+   La columna «bloque» manda: si trae un valor que no reconocemos, esa
+   fila se ignora y se cuenta, para poder avisarlo. */
+function aplicarCualitativo(txt){
+  const filas = leerCSV(txt);
+  if(filas.length < 2) throw new Error('planilla vacía');
+  const h = filas[0].map(x=>x.trim().toLowerCase());
+  const ix = n => h.indexOf(n);
+  const cB=ix('bloque'), cN=ix('nombre'), cD=ix('detalle'),
+        cF=ix('fecha'), cM=ix('meta'), cR=ix('realizadas');
+  if(cB<0 || cN<0) throw new Error('faltan columnas bloque/nombre');
+
+  const gf=[], hv=[], obs=[], act=[];
+  let ignoradas=0;
+  const num = v => { const n=parseInt((v||'').trim(),10); return isNaN(n)?0:n };
+  const fec = v => { v=(v||'').trim(); return /^\d{4}-\d{2}-\d{2}$/.test(v)? v : null };
+
+  filas.slice(1).forEach(r=>{
+    const b=(r[cB]||'').trim().toLowerCase();
+    const nom=(r[cN]||'').trim(); if(!nom) return;
+    const det=(r[cD]||'').trim(), f=fec(r[cF]);
+    const meta=cM>=0? Math.max(1,num(r[cM])) : 1;
+    const log =cR>=0? num(r[cR]) : 0;
+
+    if(b.startsWith('grupo focal benef'))      gf.push({n:nom, s:det, f, t:'ben', log});
+    else if(b.startsWith('grupo focal func'))  gf.push({n:nom, s:det, f, t:'fun', log});
+    else if(b.startsWith('hoja de vida'))      hv.push({n:nom, r:det, f, log});
+    else if(b.startsWith('observaci'))         obs.push({n:nom, r:det, log});
+    else if(b.startsWith('entrevista'))        act.push({g:nom, meta, log});
+    else ignoradas++;
+  });
+
+  if(!gf.length && !hv.length && !obs.length && !act.length)
+    throw new Error('ninguna fila reconocible');
+
+  if(gf.length)  CFG.gf  = gf;
+  if(hv.length)  CFG.hv  = hv;
+  if(obs.length) CFG.obs = obs;
+  if(act.length) CFG.act = act;
+  CFG.cualiVivo = true;
+  CFG.cualiIgnoradas = ignoradas;
+  return {gf:gf.length, hv:hv.length, obs:obs.length, act:act.length, ignoradas};
+}
+
 function fuente(){
-  est('off','◷ Cargando datos del puente…');
-  fetch(FUENTE_JSON, {cache:'no-store'})
+  est('off','◷ Cargando datos…');
+
+  /* Las dos fuentes son independientes: si una falla, la otra igual se
+     aplica. Por eso no se encadenan con .then() sino que se resuelven
+     por separado y se repinta una sola vez al final. */
+  const pKobo = fetch(FUENTE_JSON, {cache:'no-store'})
     .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-    .then(J=>{
-      aplicarVivo(J);
-      pintar();
-      const h = (J.generado||'').slice(11,16);
-      est('on','● En vivo · Kobo vía puente'+(h?' · '+h:''));
-    })
-    .catch(e=>{
-      est('wait','◷ Instantánea del '+dm(CFG.generado)+' · puente sin responder');
-      console.warn('Puente no disponible:', e.message);
-    });
+    .then(J=>{ aplicarVivo(J); return J; })
+    .catch(e=>{ console.warn('Puente Kobo no disponible:', e.message); return null; });
+
+  const pCuali = !FUENTE_CUALI ? Promise.resolve(null)
+    : fetch(FUENTE_CUALI, {cache:'no-store'})
+        .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+        .then(t=>aplicarCualitativo(t))
+        .catch(e=>{ console.warn('Planilla cualitativa no disponible:', e.message); return null; });
+
+  Promise.all([pKobo, pCuali]).then(([J, C])=>{
+    pintar();
+    if(J){
+      const h=(J.generado||'').slice(11,16);
+      est('on','● En vivo'+(C?' · Kobo y planilla':' · Kobo')+(h?' · '+h:''));
+    } else if(C){
+      est('on','● Planilla en vivo · Kobo sin responder');
+    } else {
+      est('wait','◷ Instantánea del '+dm(CFG.generado)+' · fuentes sin responder');
+    }
+  });
 }
 
 /* tema */
