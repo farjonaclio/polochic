@@ -3,7 +3,7 @@
   "1 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-08-11",
- "generado": "2026-08-12T06:35:12-06:00",
+ "generado": "2026-08-12T10:12:09-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -44,7 +44,7 @@
    "porComDia": {},
    "porEnc": {},
    "sinComunidad": 0,
-   "sinConsent": 1,
+   "sinConsent": 4,
    "sinFecha": 0,
    "total": 0
   },
