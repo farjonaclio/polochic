@@ -1,13 +1,14 @@
 {
  "avisos": [
-  "1 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
+  "2 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-08-11",
- "generado": "2026-08-13T06:36:07-06:00",
+ "corte": "2026-08-13",
+ "generado": "2026-08-13T10:12:08-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
    "porCom": {
+    "Agua Caliente": 5,
     "Bella Flor": 12,
     "El Recuerdo": 12,
     "El Rodeo": 10,
@@ -16,9 +17,12 @@
     "Pancús": 13,
     "Punto 15": 12,
     "Qotoxha 2": 1,
-    "Qotoxhá, Río Polochic": 12
+    "Qotoxhá, Río Polochic": 12,
+    "Tinajas": 4
    },
    "porComDia": {
+    "Agua Caliente|2026-08-11": 1,
+    "Agua Caliente|2026-08-13": 4,
     "Bella Flor|2026-08-03": 1,
     "Bella Flor|2026-08-04": 11,
     "El Recuerdo|2026-08-03": 12,
@@ -31,13 +35,14 @@
     "Punto 15|2026-08-06": 1,
     "Punto 15|2026-08-11": 11,
     "Qotoxha 2|2026-07-31": 1,
-    "Qotoxhá, Río Polochic|2026-08-06": 12
+    "Qotoxhá, Río Polochic|2026-08-06": 12,
+    "Tinajas|2026-08-13": 4
    },
    "porEnc": {},
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 98
+   "total": 107
   },
   "fun": {
    "porCom": {},
@@ -50,16 +55,17 @@
   },
   "ins": {
    "porCom": {
-    "(sin comunidad)": 1
+    "(sin comunidad)": 2
    },
    "porComDia": {
-    "(sin comunidad)|2026-07-31": 1
+    "(sin comunidad)|2026-07-31": 1,
+    "(sin comunidad)|2026-08-13": 1
    },
    "porEnc": {},
-   "sinComunidad": 1,
+   "sinComunidad": 2,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 1
+   "total": 2
   },
   "lid": {
    "porCom": {
