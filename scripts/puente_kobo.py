@@ -219,7 +219,7 @@ def get(url):
 def listar_formularios():
     """Diagnóstico: imprime los UID de todos los formularios visibles."""
     d = get(f"{KOBO_HOST}/api/v2/assets/?format=json&limit=200")
-    print(f"{'UID':<24} {'ENV�MOS':>7}  NOMBRE")
+    print(f"{'UID':<24} {'ENVÍOS':>7}  NOMBRE")
     print("-" * 78)
     for a in d.get("results", []):
         if a.get("asset_type") != "survey":
@@ -293,11 +293,24 @@ def dia(s):
 def consiente(v):
     """Kobo devuelve etiquetas ("Sí", "No"), valores ("si", "1") o vacío
     según cómo se definió la pregunta. Vacío se trata como consentido:
-    el formulario de actores institucionales no tiene la pregunta."""
+    el formulario de actores institucionales no tiene la pregunta.
+
+    El formulario de funcionarios públicos no pregunta sí/no: pregunta
+    «Declaro que (marque todas las que apliquen)» con tres opciones —
+    1 ha leído, 2 comprende, 3 acepta participar voluntariamente— y Kobo
+    devuelve las marcadas separadas por espacio ("1 2 3"). Una lectura
+    sí/no descarta esos envíos completos: no empiezan con "s" ni son "1".
+    Consiente quien marcó la opción de participación voluntaria; quien
+    marcó solo que leyó y comprendió, no."""
     if not v:
         return True
-    v = v.lower()
-    return v.startswith("s") or v.startswith("y") or v == "1"
+    s = str(v).strip().lower()
+    partes = s.split()
+    if "3" in partes or "acepta" in s:
+        return True
+    if len(partes) > 1:
+        return any(p.startswith("s") or p.startswith("y") for p in partes)
+    return s.startswith("s") or s.startswith("y") or s == "1"
 
 
 # ------------------------------------------------------------------
