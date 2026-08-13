@@ -477,15 +477,27 @@ const CFG = {
 
   /* Los otros dos formularios web —actores institucionales y funcionarios
      públicos— no tienen desagregación por comunidad, así que del puente
-     solo se toma el total. funMeta queda en 0 mientras la coordinación no
-     confirme cuántas encuestas a funcionarios se comprometieron: sin meta
-     la pista se dibuja punteada y el valor se rotula «s.m.», que es
-     distinto de decir que la meta es cero. */
+     solo se toma el total.
+
+     Funcionarios públicos: la meta se comprometió como rango, 80 a 100
+     (D. Martuccelli, 13-ago-2026). Se dibuja la pista hasta 100 con una
+     marca en 80, que es el piso del compromiso, y el denominador se
+     rotula «80–100»: poner un número único sería inventar una precisión
+     que el compromiso no tiene.
+
+     Actores institucionales: la encuesta web es un instrumento distinto
+     de las 38 entrevistas a actores del apartado 04 —encuesta y
+     entrevista no son lo mismo— así que no comparte su meta. Queda en
+     «s.m.» hasta que la coordinación confirme cuántas se comprometieron.
+     Sin meta la pista va punteada, que es distinto de decir que la meta
+     es cero. */
   insLog : 0,
   funLog : 0,
   insSinCons : 0,
   funSinCons : 0,
-  funMeta : 0,
+  insMeta : 0,
+  funMetaMin : 80,
+  funMetaMax : 100,
 
   /* comunidad, municipio, departamento, meta, logrado, responsable,
      agenda (rango), fecha de aplicación efectiva, estado, certeza jurídica */
@@ -844,7 +856,10 @@ function fila(cont,o){
   tip(t, o.nm.replace(/<[^>]+>/g,'')+'\n'+fmt(o.v)+' de '+fmt(o.max)+'  ('+pc(o.v,o.max)+'%)'
         +(o.tipx?'\n'+o.tipx:''));
   r.append(t);
-  r.append(el('div','vl', o.den===false ? fmt(o.v) : fmt(o.v)+' <i>/'+fmt(o.max)+'</i>'));
+  /* denTxt: para metas comprometidas como rango («80–100»), donde poner
+     un solo número sería inventar precisión que el compromiso no tiene. */
+  r.append(el('div','vl', o.den===false ? fmt(o.v)
+              : fmt(o.v)+' <i>/'+(o.denTxt || fmt(o.max))+'</i>'));
   cont.append(r);
 }
 function tabla(cont, head, rows, opts){
@@ -948,10 +963,12 @@ function instrumentos(){
   fila(a,{nm:'Beneficiarios',           v:T.ben.log, max:T.ben.meta, cls:''});
   fila(a,{nm:'Liderazgos comunitarios',  v:T.lid.log, max:T.lid.meta, cls:'',
           tipx:'Doble adscripción: también se lee como entrevista grupal'});
-  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:T.act.meta, cls:'p',
-          tipx:'Meta agregada desde el apartado 3.5 del diseño · mismo universo '
-              +'que «Entrevistas a actores» del apartado 04'});
-  fila(a,{nm:'Funcionarios públicos',    v:CFG.funLog, max:CFG.funMeta, cls:'p'});
+  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:CFG.insMeta, cls:'p',
+          tipx:'Encuesta web · instrumento distinto de las entrevistas a actores del apartado 04'});
+  fila(a,{nm:'Funcionarios públicos',    v:CFG.funLog, max:CFG.funMetaMax,
+          mark:CFG.funMetaMin, cls:'p',
+          denTxt:CFG.funMetaMin+'–'+CFG.funMetaMax,
+          tipx:'Meta comprometida como rango · la marca señala el piso de '+CFG.funMetaMin});
 
   /* Notas de lectura, no alarmas: el tablero muestra el registro y explica
      de dónde sale cuando puede confundirse con otra cifra. */
@@ -969,7 +986,8 @@ function instrumentos(){
   fila(b,{nm:'Grupos focales',           v:T.gf.log,  max:T.gf.meta,  cls:'p',
           tipx:'9 con beneficiarios + 3 con funcionarios públicos'});
   fila(b,{nm:'Entrevistas a actores',    v:T.act.log, max:T.act.meta, cls:'p',
-          tipx:'10 categorías de actor'});
+          tipx:'10 categorías de actor · instrumento distinto de la encuesta web '
+              +'a actores institucionales del apartado 03'});
   fila(b,{nm:'Hojas de vida',            v:T.hv.log,  max:T.hv.meta,  cls:'p'});
   fila(b,{nm:'Observación participante', v:T.obs.log, max:T.obs.meta, cls:'p'});
 
