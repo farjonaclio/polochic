@@ -3,12 +3,12 @@
   "2 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-08-13",
- "generado": "2026-08-13T10:12:08-06:00",
+ "generado": "2026-08-13T13:47:40-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
    "porCom": {
-    "Agua Caliente": 5,
+    "Agua Caliente": 9,
     "Bella Flor": 12,
     "El Recuerdo": 12,
     "El Rodeo": 10,
@@ -18,11 +18,11 @@
     "Punto 15": 12,
     "Qotoxha 2": 1,
     "Qotoxhá, Río Polochic": 12,
-    "Tinajas": 4
+    "Tinajas": 11
    },
    "porComDia": {
     "Agua Caliente|2026-08-11": 1,
-    "Agua Caliente|2026-08-13": 4,
+    "Agua Caliente|2026-08-13": 8,
     "Bella Flor|2026-08-03": 1,
     "Bella Flor|2026-08-04": 11,
     "El Recuerdo|2026-08-03": 12,
@@ -36,13 +36,13 @@
     "Punto 15|2026-08-11": 11,
     "Qotoxha 2|2026-07-31": 1,
     "Qotoxhá, Río Polochic|2026-08-06": 12,
-    "Tinajas|2026-08-13": 4
+    "Tinajas|2026-08-13": 11
    },
    "porEnc": {},
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 107
+   "total": 118
   },
   "fun": {
    "porCom": {},
@@ -75,7 +75,8 @@
     "Luchadores San Esteban": 1,
     "Pancús": 1,
     "Punto 15": 1,
-    "Qotoxhá, Río Polochic": 2
+    "Qotoxhá, Río Polochic": 2,
+    "Tinajas": 1
    },
    "porComDia": {
     "Bella Flor|2026-08-04": 1,
@@ -85,13 +86,14 @@
     "Pancús|2026-08-04": 1,
     "Punto 15|2026-08-06": 1,
     "Qotoxhá, Río Polochic|2026-07-31": 1,
-    "Qotoxhá, Río Polochic|2026-08-06": 1
+    "Qotoxhá, Río Polochic|2026-08-06": 1,
+    "Tinajas|2026-08-13": 1
    },
    "porEnc": {},
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 8
+   "total": 9
   }
  }
 }
