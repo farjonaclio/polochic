@@ -290,7 +290,7 @@ footer b{color:var(--ink-2)}
   <div class="grid g2">
     <div class="card">
       <div class="pill"><span class="n">03</span><h2>Instrumentos cuantitativos</h2></div>
-      <p class="sub" id="sub-cuant">Fuente: KoboToolbox (servidor europeo) vía puente automatizado. Meta comprometida por el diseño muestral.</p>
+      <p class="sub" id="sub-cuant">Fuente: los cuatro formularios de KoboToolbox (servidor europeo) vía puente automatizado: beneficiarios, liderazgos comunitarios, actores institucionales y funcionarios públicos. Meta comprometida por el diseño muestral.</p>
       <div class="rows" id="cuant"></div>
       <div id="nota-cuant"></div>
     </div>
@@ -474,6 +474,18 @@ const CFG = {
   vivo : false,          /* lo pone en true la carga del puente */
   avisosPuente : [],
   reconocidas : 0,
+
+  /* Los otros dos formularios web —actores institucionales y funcionarios
+     públicos— no tienen desagregación por comunidad, así que del puente
+     solo se toma el total. funMeta queda en 0 mientras la coordinación no
+     confirme cuántas encuestas a funcionarios se comprometieron: sin meta
+     la pista se dibuja punteada y el valor se rotula «s.m.», que es
+     distinto de decir que la meta es cero. */
+  insLog : 0,
+  funLog : 0,
+  insSinCons : 0,
+  funSinCons : 0,
+  funMeta : 0,
 
   /* comunidad, municipio, departamento, meta, logrado, responsable,
      agenda (rango), fecha de aplicación efectiva, estado, certeza jurídica */
@@ -936,15 +948,22 @@ function instrumentos(){
   fila(a,{nm:'Beneficiarios',           v:T.ben.log, max:T.ben.meta, cls:''});
   fila(a,{nm:'Liderazgos comunitarios',  v:T.lid.log, max:T.lid.meta, cls:'',
           tipx:'Doble adscripción: también se lee como entrevista grupal'});
-  fila(a,{nm:'Actores institucionales',  v:0, max:T.act.meta, cls:'p',
-          tipx:'Meta agregada desde el apartado 3.5 del diseño'});
-  fila(a,{nm:'Funcionarios públicos',    v:0, max:0, cls:'p'});
-  /* Cuando la planificación y el registro no coinciden, el tablero muestra
-     el registro y lo dice. Es una nota de lectura, no una alarma. */
-  $('#nota-cuant').innerHTML = CFG.lidDeclarado!==T.lid.log
-    ? '<div class="alerta i">◆ Liderazgos comunitarios: se muestra el conteo del registro ('
-      +T.lid.log+'). La planificación anotaba '+CFG.lidDeclarado+'.</div>'
-    : '';
+  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:T.act.meta, cls:'p',
+          tipx:'Meta agregada desde el apartado 3.5 del diseño · mismo universo '
+              +'que «Entrevistas a actores» del apartado 04'});
+  fila(a,{nm:'Funcionarios públicos',    v:CFG.funLog, max:CFG.funMeta, cls:'p'});
+
+  /* Notas de lectura, no alarmas: el tablero muestra el registro y explica
+     de dónde sale cuando puede confundirse con otra cifra. */
+  const nc = [];
+  if(CFG.lidDeclarado!==T.lid.log)
+    nc.push('Liderazgos comunitarios: se muestra el conteo del registro ('
+            +T.lid.log+'). La planificación anotaba '+CFG.lidDeclarado+'.');
+  const sc = CFG.insSinCons + CFG.funSinCons;
+  if(sc) nc.push(sc+' envío(s) llegaron sin consentimiento registrado y quedan fuera del '
+                +'conteo. Conviene revisarlos con el equipo de campo.');
+  $('#nota-cuant').innerHTML = nc.length
+    ? '<div class="alerta i">◆ '+nc.join('<br>◆ ')+'</div>' : '';
 
   const b=$('#cuali'); b.innerHTML='';
   fila(b,{nm:'Grupos focales',           v:T.gf.log,  max:T.gf.meta,  cls:'p',
@@ -1244,6 +1263,17 @@ function aplicarVivo(J){
      síntoma de un nombre escrito distinto en campo, y hay que verlo:
      si se ignoran, el avance global queda corto sin explicación. */
   Object.keys(ben).forEach(c=>{ if(!CFG.com.some(x=>x.c===c)) huerfanas.push(c+' ('+ben[c]+')'); });
+
+  /* Actores institucionales y funcionarios públicos: el puente los trae
+     desde el 11-ago. No traen comunidad utilizable, así que se toma el
+     total. sinConsent son envíos que llegaron sin consentimiento marcado
+     y quedan fuera del conteo: hay que poder verlos, porque un formulario
+     que no registra consentimiento es un problema de campo, no un cero. */
+  const I = J.instrumentos;
+  CFG.insLog     = I.ins ? (I.ins.total||0)      : 0;
+  CFG.funLog     = I.fun ? (I.fun.total||0)      : 0;
+  CFG.insSinCons = I.ins ? (I.ins.sinConsent||0) : 0;
+  CFG.funSinCons = I.fun ? (I.fun.sinConsent||0) : 0;
 
   /* Serie diaria REAL. Sin el puente, el tablero atribuye todo lo
      logrado en una comunidad a su fecha de aplicación: la curva sale
