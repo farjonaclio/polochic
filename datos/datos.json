@@ -1,16 +1,16 @@
 {
  "avisos": [
-  "2 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
+  "3 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "4 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-08-13",
- "generado": "2026-08-13T14:10:06-06:00",
+ "generado": "2026-08-13T16:23:51-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
    "porCom": {
     "Agua Caliente": 9,
-    "Bella Flor": 12,
+    "Bella Flor": 14,
     "El Recuerdo": 12,
     "El Rodeo": 10,
     "Guaxpom": 21,
@@ -26,6 +26,7 @@
     "Agua Caliente|2026-08-13": 8,
     "Bella Flor|2026-08-03": 1,
     "Bella Flor|2026-08-04": 11,
+    "Bella Flor|2026-08-13": 2,
     "El Recuerdo|2026-08-03": 12,
     "El Rodeo|2026-08-05": 1,
     "El Rodeo|2026-08-06": 9,
@@ -43,7 +44,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 118
+   "total": 120
   },
   "fun": {
    "porCom": {
@@ -61,17 +62,17 @@
   },
   "ins": {
    "porCom": {
-    "(sin comunidad)": 2
+    "(sin comunidad)": 3
    },
    "porComDia": {
     "(sin comunidad)|2026-07-31": 1,
-    "(sin comunidad)|2026-08-13": 1
+    "(sin comunidad)|2026-08-13": 2
    },
    "porEnc": {},
-   "sinComunidad": 2,
+   "sinComunidad": 3,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 2
+   "total": 3
   },
   "lid": {
    "porCom": {
