@@ -4,7 +4,7 @@
   "5 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-08-14",
- "generado": "2026-08-14T15:44:14-06:00",
+ "generado": "2026-08-14T16:53:58-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -84,6 +84,7 @@
     "Guaxpom": 1,
     "Luchadores San Esteban": 1,
     "Pancús": 1,
+    "Paraná": 1,
     "Punto 15": 1,
     "Qotoxhá, Río Polochic": 2,
     "Tinajas": 1
@@ -94,6 +95,7 @@
     "Guaxpom|2026-08-04": 1,
     "Luchadores San Esteban|2026-08-03": 1,
     "Pancús|2026-08-04": 1,
+    "Paraná|2026-08-14": 1,
     "Punto 15|2026-08-06": 1,
     "Qotoxhá, Río Polochic|2026-07-31": 1,
     "Qotoxhá, Río Polochic|2026-08-06": 1,
@@ -103,7 +105,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 9
+   "total": 10
   }
  }
 }
