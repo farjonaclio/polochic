@@ -196,6 +196,11 @@ svg.ch .ax{stroke:var(--axis);stroke-width:1}
 .act.sec{background:transparent;color:var(--petroleo);border:1.5px solid var(--petroleo)}
 :root[data-theme="dark"] .act.sec{color:#4FC6DE;border-color:#4FC6DE}
 .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+/* botón de fila: el mismo magenta, en el peso que tolera una tabla */
+.mini{background:transparent;color:var(--magenta);border:1px solid var(--magenta);
+      border-radius:7px;padding:4px 10px;font-family:inherit;font-size:11px;font-weight:600;
+      letter-spacing:.02em;cursor:pointer;white-space:nowrap}
+.mini:hover{background:var(--magenta);color:#fff}
 
 /* tooltip */
 .tip{position:fixed;pointer-events:none;background:var(--azul);color:#fff;font-size:11.5px;padding:7px 10px;
@@ -304,7 +309,16 @@ footer b{color:var(--ink-2)}
   </div>
 
   <div class="card">
-    <div class="pill"><span class="n">05</span><h2>Distribución territorial</h2></div>
+    <div class="pill"><span class="n">05</span><h2>Detalle de aplicaciones cualitativas</h2></div>
+    <p class="sub">Una fila por aplicación comprometida, con lo que quedó registrado hasta el
+      momento. Sirve para revisar qué falta cargar sin abrir la planilla. El botón de cada fila
+      abre el registro con esa aplicación ya seleccionada.</p>
+    <div class="tw" id="tabla-cuali"></div>
+    <div id="nota-cuali-det"></div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">06</span><h2>Distribución territorial</h2></div>
     <p class="sub">Círculos proporcionales al volumen levantado por municipio. El área —no el radio—
       es proporcional al valor.</p>
     <div class="grid g2">
@@ -315,7 +329,7 @@ footer b{color:var(--ink-2)}
   </div>
 
   <div class="card">
-    <div class="pill"><span class="n">06</span><h2>Control por comunidad</h2></div>
+    <div class="pill"><span class="n">07</span><h2>Control por comunidad</h2></div>
     <p class="sub">Semáforo de cobertura sobre la meta comprometida: <b>rojo</b> bajo 70%,
       <b>amarillo</b> 70–90%, <b>verde</b> sobre 90%. La diferencia respecto de la meta se reporta
       por comunidad, sin netear entre comunidades.</p>
@@ -324,13 +338,13 @@ footer b{color:var(--ink-2)}
   </div>
 
   <div class="card">
-    <div class="pill"><span class="n">07</span><h2>Carga pendiente y agenda</h2></div>
+    <div class="pill"><span class="n">08</span><h2>Carga pendiente y agenda</h2></div>
     <p class="sub">Distribución de lo que resta aplicar según el calendario de campo vigente.</p>
     <div id="carga"></div>
   </div>
 
   <div class="card">
-    <div class="pill"><span class="n">08</span><h2>Fuentes y respaldos</h2></div>
+    <div class="pill"><span class="n">09</span><h2>Fuentes y respaldos</h2></div>
     <p class="sub">Los datos cuantitativos provienen de los formularios de KoboToolbox y se
       actualizan automáticamente. El microdato permanece en el entorno controlado del proyecto;
       en este tablero solo se publican conteos agregados.</p>
@@ -487,15 +501,14 @@ const CFG = {
 
      Actores institucionales: la encuesta web es un instrumento distinto
      de las 38 entrevistas a actores del apartado 04 —encuesta y
-     entrevista no son lo mismo— así que no comparte su meta. Queda en
-     «s.m.» hasta que la coordinación confirme cuántas se comprometieron.
-     Sin meta la pista va punteada, que es distinto de decir que la meta
-     es cero. */
+     entrevista no son lo mismo— y también se comprometió como rango
+     80 a 100 (D. Martuccelli, 13-ago-2026). */
   insLog : 0,
   funLog : 0,
   insSinCons : 0,
   funSinCons : 0,
-  insMeta : 0,
+  insMetaMin : 80,
+  insMetaMax : 100,
   funMetaMin : 80,
   funMetaMax : 100,
 
@@ -963,8 +976,11 @@ function instrumentos(){
   fila(a,{nm:'Beneficiarios',           v:T.ben.log, max:T.ben.meta, cls:''});
   fila(a,{nm:'Liderazgos comunitarios',  v:T.lid.log, max:T.lid.meta, cls:'',
           tipx:'Doble adscripción: también se lee como entrevista grupal'});
-  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:CFG.insMeta, cls:'p',
-          tipx:'Encuesta web · instrumento distinto de las entrevistas a actores del apartado 04'});
+  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:CFG.insMetaMax,
+          mark:CFG.insMetaMin, cls:'p',
+          denTxt:CFG.insMetaMin+'–'+CFG.insMetaMax,
+          tipx:'Encuesta web · instrumento distinto de las entrevistas a actores '
+              +'del apartado 04 · meta comprometida como rango'});
   fila(a,{nm:'Funcionarios públicos',    v:CFG.funLog, max:CFG.funMetaMax,
           mark:CFG.funMetaMin, cls:'p',
           denTxt:CFG.funMetaMin+'–'+CFG.funMetaMax,
@@ -1045,6 +1061,48 @@ function mapa(){
     +'</div>';
 }
 
+/* --- 05 · detalle de aplicaciones cualitativas ---
+   El apartado 04 responde «cuánto llevamos»; este responde «cuál de
+   todas». Quien está cargando la información necesita poder revisar qué
+   quedó registrado y qué no, aplicación por aplicación, sin abrir la
+   planilla. Es la misma lista que alimenta el formulario de registro. */
+function tablaCuali(){
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                                       .replace(/"/g,'&quot;');
+  const L = REG.items();
+
+  const rows = L.map(i=>{
+    const av = pc(i.log, i.meta);
+    /* El estado escrito en la planilla manda; si está vacío se deduce
+       del conteo. Nunca se sobreescribe lo que alguien declaró. */
+    const e = i.est || (i.log>=i.meta ? 'Realizado' : i.log>0 ? 'En curso' : 'Pendiente');
+    const badge = /realizado/i.test(e) ? '<span class="badge ok">Realizado</span>'
+                : /curso/i.test(e)     ? '<span class="badge re">En curso</span>'
+                : '<span class="badge pe">Pendiente</span>';
+    const boton = ENDPOINT_REGISTRO
+      ? '<button class="mini" data-b="'+esc(i.b)+'" data-n="'+esc(i.n)+'">Registrar</button>'
+      : '';
+    return ['<span class="sem '+semClase(av)+'"></span>'+esc(i.n)
+              +'<span class="m2">'+esc(i.b)+'</span>',
+            i.det ? esc(i.det) : '<span style="color:var(--muted)">Por definir</span>',
+            i.f ? dm(i.f) : '<span style="color:var(--muted)">—</span>',
+            i.meta, i.log, badge,
+            i.nt ? esc(i.nt) : '<span style="color:var(--muted)">·</span>',
+            boton];
+  });
+
+  tabla($('#tabla-cuali'),
+    ['Aplicación','Sede o responsable','Fecha','Meta','Registradas','Estado','Notas',''],
+    rows, {num:[3,4]});
+
+  const hechas = L.filter(i=>i.log>=i.meta).length;
+  const sinFecha = L.filter(i=>!i.f).length;
+  $('#nota-cuali-det').innerHTML = '<div class="alerta i">◆ '+hechas+' de '+L.length
+    +' aplicaciones cerradas. '
+    +(sinFecha ? sinFecha+' todavía sin fecha en el calendario. ' : '')
+    +'La fila se actualiza sola cuando se registra desde este tablero o desde la planilla.</div>';
+}
+
 /* --- 06 · tabla por comunidad --- */
 function tablaComunidades(){
   const rows = CFG.com.map(x=>{
@@ -1114,13 +1172,19 @@ function carga(){
    tablero queda solo de lectura.
    ================================================================== */
 const REG = {
+  /* Lista única de aplicaciones cualitativas. La usan el formulario de
+     registro y la tabla de detalle del apartado 05: una sola definición
+     evita que una muestre algo distinto de la otra. */
   items(){
     const L=[];
     CFG.gf.forEach(x=>L.push({b: x.t==='fun'?'Grupo focal funcionarios':'Grupo focal beneficiarios',
-                              n:x.n, meta:1, log:x.log, f:x.f}));
-    CFG.hv.forEach(x=>L.push({b:'Hoja de vida',  n:x.n, meta:1, log:x.log, f:x.f}));
-    CFG.obs.forEach(x=>L.push({b:'Observación',  n:x.n, meta:1, log:x.log, f:null}));
-    CFG.act.forEach(x=>L.push({b:'Entrevista a actores', n:x.g, meta:x.meta, log:x.log, f:null}));
+                              n:x.n, det:x.s, meta:1, log:x.log, f:x.f, est:x.est, nt:x.nt}));
+    CFG.hv.forEach(x=>L.push({b:'Hoja de vida',  n:x.n, det:x.r, meta:1, log:x.log,
+                              f:x.f, est:x.est, nt:x.nt}));
+    CFG.obs.forEach(x=>L.push({b:'Observación',  n:x.n, det:x.r, meta:1, log:x.log,
+                              f:x.f, est:x.est, nt:x.nt}));
+    CFG.act.forEach(x=>L.push({b:'Entrevista a actores', n:x.g, det:x.d, meta:x.meta,
+                              log:x.log, f:x.f, est:x.est, nt:x.nt}));
     return L;
   },
   llenarBloques(){
@@ -1150,12 +1214,21 @@ const REG = {
   msg(txt, clase){
     const m=$('#reg-msg'); m.textContent=txt; m.className='msg on '+clase;
   },
-  abrir(){
+  /* pre = {b, n}: abre el formulario ya posicionado en una aplicación.
+     Es lo que hace el botón «Registrar» de cada fila del apartado 05,
+     para no obligar a buscar en dos desplegables lo que ya se está
+     mirando en la tabla. */
+  abrir(pre){
     $('#reg-msg').className='msg';
     $('#reg-codigo').value='';
     REG.llenarBloques();
+    if(pre && pre.b){
+      $('#reg-bloque').value = pre.b;
+      REG.llenarNombres();
+      if(pre.n){ $('#reg-nombre').value = pre.n; REG.mostrarEstado(); }
+    }
     $('#reg-bd').classList.add('on');
-    setTimeout(()=>$('#reg-bloque').focus(),60);
+    setTimeout(()=>$('#reg-'+(pre&&pre.n?'cant':'bloque')).focus(),60);
   },
   cerrar(){ $('#reg-bd').classList.remove('on') },
 
@@ -1219,7 +1292,13 @@ const REG = {
     if(cont) cont.insertAdjacentHTML('beforebegin',
       '<div class="acts" style="margin-top:16px"><button class="act" id="reg-abrir" '
       +'style="border:none;cursor:pointer">Registrar aplicación</button></div>');
-    $('#reg-abrir')?.addEventListener('click', REG.abrir);
+    $('#reg-abrir')?.addEventListener('click', ()=>REG.abrir());
+    /* La tabla del apartado 05 se repinta entera en cada actualización,
+       así que el listener va en el contenedor y no en cada botón. */
+    $('#tabla-cuali')?.addEventListener('click', e=>{
+      const b = e.target.closest('button.mini'); if(!b) return;
+      REG.abrir({b: b.dataset.b, n: b.dataset.n});
+    });
     $('#reg-cancelar').addEventListener('click', REG.cerrar);
     $('#reg-enviar').addEventListener('click', REG.enviar);
     $('#reg-bloque').addEventListener('change', REG.llenarNombres);
@@ -1244,7 +1323,7 @@ function pintar(){
        ? ' '+D.sinFecha+' aplicación(es) aún sin fecha en el calendario, por lo que la curva prevista '
          +'cierra en '+fmt(D.meta)+'.'
        : '');
-  paneles(); instrumentos(); mapa(); tablaComunidades(); carga();
+  paneles(); instrumentos(); tablaCuali(); mapa(); tablaComunidades(); carga();
   REG.montar();
   $('#lnk-kobo').href = KOBO.ben;
   $('#lnk-drive').href = DRIVE;
@@ -1358,7 +1437,8 @@ function aplicarCualitativo(txt){
   const h = filas[0].map(x=>x.trim().toLowerCase());
   const ix = n => h.indexOf(n);
   const cB=ix('bloque'), cN=ix('nombre'), cD=ix('detalle'),
-        cF=ix('fecha'), cM=ix('meta'), cR=ix('realizadas');
+        cF=ix('fecha'), cM=ix('meta'), cR=ix('realizadas'),
+        cE=ix('estado'), cT=ix('notas');
   if(cB<0 || cN<0) throw new Error('faltan columnas bloque/nombre');
 
   const gf=[], hv=[], obs=[], act=[];
@@ -1372,12 +1452,16 @@ function aplicarCualitativo(txt){
     const det=(r[cD]||'').trim(), f=fec(r[cF]);
     const meta=cM>=0? Math.max(1,num(r[cM])) : 1;
     const log =cR>=0? num(r[cR]) : 0;
+    /* est y nt viajan solo para la tabla de detalle del apartado 05:
+       quien está cargando necesita ver qué escribió, no solo el conteo. */
+    const est=cE>=0? (r[cE]||'').trim() : '';
+    const nt =cT>=0? (r[cT]||'').trim() : '';
 
-    if(b.startsWith('grupo focal benef'))      gf.push({n:nom, s:det, f, t:'ben', log});
-    else if(b.startsWith('grupo focal func'))  gf.push({n:nom, s:det, f, t:'fun', log});
-    else if(b.startsWith('hoja de vida'))      hv.push({n:nom, r:det, f, log});
-    else if(b.startsWith('observaci'))         obs.push({n:nom, r:det, log});
-    else if(b.startsWith('entrevista'))        act.push({g:nom, meta, log});
+    if(b.startsWith('grupo focal benef'))      gf.push({n:nom, s:det, f, t:'ben', log, est, nt});
+    else if(b.startsWith('grupo focal func'))  gf.push({n:nom, s:det, f, t:'fun', log, est, nt});
+    else if(b.startsWith('hoja de vida'))      hv.push({n:nom, r:det, f, log, est, nt});
+    else if(b.startsWith('observaci'))         obs.push({n:nom, r:det, f, log, est, nt});
+    else if(b.startsWith('entrevista'))        act.push({g:nom, d:det, f, meta, log, est, nt});
     else ignoradas++;
   });
 
