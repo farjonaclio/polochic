@@ -1,10 +1,10 @@
 {
  "avisos": [
-  "5 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
+  "6 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "16 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-08-18",
- "generado": "2026-08-19T08:06:17-06:00",
+ "corte": "2026-08-19",
+ "generado": "2026-08-19T09:58:34-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -67,19 +67,20 @@
   },
   "ins": {
    "porCom": {
-    "(sin comunidad)": 5
+    "(sin comunidad)": 6
    },
    "porComDia": {
     "(sin comunidad)|2026-07-31": 1,
     "(sin comunidad)|2026-08-13": 2,
     "(sin comunidad)|2026-08-16": 1,
-    "(sin comunidad)|2026-08-18": 1
+    "(sin comunidad)|2026-08-18": 1,
+    "(sin comunidad)|2026-08-19": 1
    },
    "porEnc": {},
-   "sinComunidad": 5,
+   "sinComunidad": 6,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 5
+   "total": 6
   },
   "lid": {
    "porCom": {
