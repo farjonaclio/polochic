@@ -234,8 +234,20 @@ footer b{color:var(--ink-2)}
 .reg .msg.on{display:block}
 .reg .msg.ok{background:color-mix(in srgb,var(--ok) 12%,transparent);border-left:3px solid var(--ok)}
 .reg .msg.err{background:var(--real-wash);border-left:3px solid var(--crit)}
+.reg .msg.warn{background:#FDF3E2;border-left:3px solid var(--warn)}
+:root[data-theme="dark"] .reg .msg.warn{background:#2E2412}
 .reg .cerrar{background:none;border:none;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
 .reg .meta-act{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+/* lo ya registrado: se ve antes de cargar, para no duplicar */
+.reg-lista{margin-top:8px;font-size:11.5px}
+.reg-lista ul{list-style:none;margin:0;padding:0;border-left:2px solid var(--ring);padding-left:10px}
+.reg-lista li{display:flex;gap:8px;align-items:baseline;padding:2px 0;color:var(--ink-2)}
+.reg-lista li span{flex:1}
+.reg-lista li b{font-weight:600;color:var(--muted);font-size:10.5px}
+.reg-lista .quitar{border:none;background:none;color:var(--muted);cursor:pointer;
+  font-family:inherit;font-size:10.5px;padding:0;text-decoration:underline}
+.reg-lista .quitar:hover{color:var(--crit)}
+.reg-lista .vacio{color:var(--muted)}
 @media(max-width:520px){ .reg .fila2{grid-template-columns:1fr} }
 </style>
 </head>
@@ -382,8 +394,8 @@ footer b{color:var(--ink-2)}
 <div class="reg-bd" id="reg-bd">
   <div class="reg" role="dialog" aria-modal="true" aria-labelledby="reg-tit">
     <h3 id="reg-tit">Registrar aplicación</h3>
-    <p class="sub">Actualiza el avance de un instrumento cualitativo. El cambio queda
-      registrado con fecha y responsable.</p>
+    <p class="sub">Se registra <b>una aplicación por vez</b>: solo lo nuevo, nunca el total.
+      El total lo calcula el sistema contando lo registrado.</p>
 
     <label for="reg-bloque">Tipo de instrumento</label>
     <select id="reg-bloque"></select>
@@ -391,11 +403,13 @@ footer b{color:var(--ink-2)}
     <label for="reg-nombre">Aplicación</label>
     <select id="reg-nombre"></select>
     <div class="meta-act" id="reg-estado"></div>
+    <div class="reg-lista" id="reg-lista"></div>
 
     <div class="fila2">
       <div>
-        <label for="reg-cant">Realizadas</label>
-        <input type="number" id="reg-cant" min="0" step="1" value="1">
+        <label for="reg-detalle">Qué se aplicó, o a quién</label>
+        <input type="text" id="reg-detalle" maxlength="160"
+               placeholder="Institución y persona, o comunidad">
       </div>
       <div>
         <label for="reg-fecha">Fecha</label>
@@ -1218,12 +1232,28 @@ const REG = {
     const b=$('#reg-bloque').value, n=$('#reg-nombre').value;
     return REG.items().find(i=>i.b===b && i.n===n);
   },
+  /* Lo ya registrado sale de la columna «notas», que el receptor arma
+     solo con el detalle de cada aplicación. Mostrarlo antes de cargar
+     es lo que evita el duplicado, que es el error probable cuando dos
+     personas trabajan la misma categoría. */
+  yaRegistrado(i){
+    return String((i && i.nt) || '').split(' · ').map(s=>s.trim()).filter(Boolean);
+  },
+  pintarLista(){
+    const i=REG.actual(); const cont=$('#reg-lista'); if(!cont) return;
+    if(!i){ cont.innerHTML=''; return; }
+    const L=REG.yaRegistrado(i);
+    cont.innerHTML = L.length
+      ? '<ul>'+L.map(x=>'<li><span>'+x.replace(/</g,'&lt;')+'</span>'
+          +'<button class="quitar" data-x="'+x.replace(/"/g,'&quot;')+'">quitar</button></li>').join('')+'</ul>'
+      : '<div class="vacio">Todavía no hay aplicaciones registradas.</div>';
+  },
   mostrarEstado(){
     const i=REG.actual(); if(!i) return;
-    $('#reg-estado').textContent = 'Registrado hasta ahora: '+i.log+' de '+i.meta
+    $('#reg-estado').textContent = 'Registradas: '+i.log+' de '+i.meta
       + (i.f? ' · agendada '+dm(i.f) : ' · sin fecha en el calendario');
-    const c=$('#reg-cant'); c.max=i.meta;
-    c.value = Math.min(i.meta, (i.log||0)+1);
+    REG.pintarLista();
+    $('#reg-detalle').value='';
     if(i.f) $('#reg-fecha').value = i.f;
   },
   msg(txt, clase){
@@ -1243,55 +1273,72 @@ const REG = {
       if(pre.n){ $('#reg-nombre').value = pre.n; REG.mostrarEstado(); }
     }
     $('#reg-bd').classList.add('on');
-    setTimeout(()=>$('#reg-'+(pre&&pre.n?'cant':'bloque')).focus(),60);
+    setTimeout(()=>$('#reg-'+(pre&&pre.n?'detalle':'bloque')).focus(),60);
   },
   cerrar(){ $('#reg-bd').classList.remove('on') },
 
-  async enviar(){
+  /* El formulario ya no manda totales: manda UNA aplicación. El total
+     lo cuenta el receptor a partir de la hoja REGISTROS, así que dos
+     personas registrando la misma categoría ya no se pisan. */
+  async enviar(){ return REG.mandar('sumar', $('#reg-detalle').value.trim()) },
+  async quitar(det){ return REG.mandar('quitar', det) },
+
+  async mandar(accion, detalle){
     const i=REG.actual();
-    const cant=parseInt($('#reg-cant').value,10);
     const codigo=$('#reg-codigo').value.trim();
     const quien=$('#reg-quien').value.trim();
 
-    if(!i) return REG.msg('Elegí una aplicación.','err');
-    if(isNaN(cant) || cant<0)   return REG.msg('La cantidad no es válida.','err');
-    if(cant>i.meta)             return REG.msg('La cantidad supera la meta ('+i.meta+').','err');
-    if(!quien)                  return REG.msg('Indicá quién reporta.','err');
-    if(!codigo)                 return REG.msg('Falta el código de registro.','err');
+    if(!i)       return REG.msg('Elegí una aplicación.','err');
+    if(!detalle) return REG.msg(accion==='quitar' ? 'No se pudo identificar el registro.'
+                                : 'Indicá qué se aplicó o a quién.','err');
+    if(!quien)   return REG.msg('Indicá quién reporta.','err');
+    if(!codigo)  return REG.msg('Falta el código de registro.','err');
 
-    const b=$('#reg-enviar'); b.textContent='Registrando…'; b.style.pointerEvents='none';
+    const b=$('#reg-enviar'); const rot=b.textContent;
+    b.textContent = accion==='quitar' ? 'Quitando…' : 'Registrando…';
+    b.style.pointerEvents='none';
     try{
       /* text/plain evita el preflight CORS: con application/json el
          navegador manda un OPTIONS que Apps Script no responde. */
       const r = await fetch(ENDPOINT_REGISTRO, {
         method:'POST', redirect:'follow',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({ bloque:i.b, nombre:i.n, realizadas:cant,
+        body: JSON.stringify({ accion, bloque:i.b, nombre:i.n, detalle,
                                fecha:$('#reg-fecha').value||'', quien,
                                notas:$('#reg-notas').value.trim(), codigo })
       });
       const j = await r.json();
       if(!j.ok) return REG.msg(j.error || 'No se pudo registrar.','err');
 
-      REG.msg('Registrado · '+j.mensaje+'. El tablero se actualiza en unos minutos.','ok');
-      $('#reg-codigo').value='';
-      /* refresco optimista para no esperar la caché de Google */
-      const it = REG.items().find(x=>x.b===i.b && x.n===i.n);
-      if(it) it.log = cant;
-      REG.aplicarLocal(i.b, i.n, cant);
+      REG.msg((accion==='quitar' ? '' : 'Registrado · ') + j.mensaje
+              + (j.aviso ? ' ' + j.aviso : ''), j.aviso ? 'warn' : 'ok');
+      $('#reg-detalle').value='';
+
+      /* Refresco optimista: el CSV publicado de Google tarda unos
+         minutos en reflejar el cambio y el tablero no debe mostrar el
+         valor viejo mientras tanto. El detalle viene del receptor, que
+         es quien sabe cómo quedó la lista. */
+      const nt = (j.lista||[]).map(x=>x.detalle).filter(Boolean).join(' · ');
+      REG.aplicarLocal(i.b, i.n, j.n, nt);
+      REG.pintarLista();
+      $('#reg-estado').textContent = 'Registradas: '+j.n+' de '+j.meta;
       pintar();
-      setTimeout(REG.cerrar, 2200);
+      if(accion!=='quitar') setTimeout(REG.cerrar, 2600);
     }catch(e){
       REG.msg('No se pudo contactar al servidor. Revisá la conexión.','err');
     }finally{
-      b.textContent='Registrar'; b.style.pointerEvents='';
+      b.textContent = rot; b.style.pointerEvents='';
     }
   },
 
   /* refleja el cambio en memoria para que el tablero no muestre el
      valor viejo mientras Google refresca el CSV publicado */
-  aplicarLocal(bloque, nombre, cant){
-    const set = a => a.forEach(x=>{ if((x.n||x.g)===nombre) x.log=cant });
+  aplicarLocal(bloque, nombre, cant, nt){
+    const set = a => a.forEach(x=>{
+      if((x.n||x.g)!==nombre) return;
+      x.log = cant;
+      if(nt!=null) x.nt = nt;
+    });
     if(bloque.startsWith('Grupo focal'))       set(CFG.gf);
     else if(bloque==='Hoja de vida')           set(CFG.hv);
     else if(bloque==='Observación')            set(CFG.obs);
@@ -1318,6 +1365,10 @@ const REG = {
     $('#reg-enviar').addEventListener('click', REG.enviar);
     $('#reg-bloque').addEventListener('change', REG.llenarNombres);
     $('#reg-nombre').addEventListener('change', REG.mostrarEstado);
+    $('#reg-lista').addEventListener('click', e=>{
+      const q = e.target.closest('.quitar'); if(!q) return;
+      REG.quitar(q.dataset.x);
+    });
     $('#reg-bd').addEventListener('click', e=>{ if(e.target.id==='reg-bd') REG.cerrar() });
     document.addEventListener('keydown', e=>{ if(e.key==='Escape') REG.cerrar() });
   }
