@@ -360,6 +360,10 @@ footer b{color:var(--ink-2)}
     <p class="sub">Los datos cuantitativos provienen de los formularios de KoboToolbox y se
       actualizan automáticamente. El microdato permanece en el entorno controlado del proyecto;
       en este tablero solo se publican conteos agregados.</p>
+    <p class="sub">Desde el 24 de agosto de 2026, el avance cualitativo se registra por aplicación
+      individual y el total se calcula contando esos registros. Las entrevistas a actores previas a
+      esa fecha se reconstruyeron a partir de la matriz de contactos del 20 de agosto. Cada
+      registro conserva qué se aplicó, quién lo reportó y cuándo.</p>
     <div class="acts">
       <a class="act" id="lnk-kobo" href="#" target="_blank" rel="noopener">Abrir formularios Kobo</a>
       <a class="act sec" id="lnk-drive" href="#" target="_blank" rel="noopener">Carpeta de respaldos</a>
@@ -1112,21 +1116,15 @@ function tablaCuali(){
   const hechas = L.filter(i=>i.log>=i.meta).length;
   const sinFecha = L.filter(i=>!i.f).length;
 
-  /* Aviso de trazabilidad. Hasta el 24-ago el formulario pedía el total
-     acumulado de cada categoría: si dos personas registraban entrevistas
-     distintas de la misma categoría, la segunda escribía su propio conteo
-     encima del de la primera. Las entrevistas a actores se recontaron
-     contra la matriz de contactos del 20-ago. Mientras el recuento no esté
-     validado por el equipo, el tablero lo dice en vez de callarlo. */
+  /* El aviso ámbar sobre el recuento se retiró a pedido de la coordinación
+     (D. Martuccelli, 24-ago-2026). La nota de método queda en el apartado
+     09, que es donde corresponde: acá es una vista operativa, no un lugar
+     para advertencias. La trazabilidad no se pierde —está en REGISTROS y
+     en BITACORA— pero deja de ocupar la pantalla del equipo de campo. */
   $('#nota-cuali-det').innerHTML =
      '<div class="alerta i">◆ '+hechas+' de '+L.length+' aplicaciones cerradas. '
     +(sinFecha ? sinFecha+' todavía sin fecha en el calendario. ' : '')
-    +'La fila se actualiza sola cuando se registra desde este tablero o desde la planilla.</div>'
-    +'<div class="alerta w">▲ <b>Recuento en revisión.</b> Los registros anteriores al 24 de agosto '
-    +'pueden estar por debajo de lo realmente aplicado: el formulario pedía el total de la categoría '
-    +'y un segundo registro sobrescribía al primero. Las entrevistas a actores se recontaron contra '
-    +'la matriz de contactos del 20 de agosto. Antes de corregir una fila a mano, conviene avisar a '
-    +'la coordinación.</div>';
+    +'Cada registro suma una aplicación; el total lo cuenta el sistema.</div>';
 }
 
 /* --- 06 · tabla por comunidad --- */
