@@ -1097,10 +1097,22 @@ function tablaCuali(){
 
   const hechas = L.filter(i=>i.log>=i.meta).length;
   const sinFecha = L.filter(i=>!i.f).length;
-  $('#nota-cuali-det').innerHTML = '<div class="alerta i">◆ '+hechas+' de '+L.length
-    +' aplicaciones cerradas. '
+
+  /* Aviso de trazabilidad. Hasta el 24-ago el formulario pedía el total
+     acumulado de cada categoría: si dos personas registraban entrevistas
+     distintas de la misma categoría, la segunda escribía su propio conteo
+     encima del de la primera. Las entrevistas a actores se recontaron
+     contra la matriz de contactos del 20-ago. Mientras el recuento no esté
+     validado por el equipo, el tablero lo dice en vez de callarlo. */
+  $('#nota-cuali-det').innerHTML =
+     '<div class="alerta i">◆ '+hechas+' de '+L.length+' aplicaciones cerradas. '
     +(sinFecha ? sinFecha+' todavía sin fecha en el calendario. ' : '')
-    +'La fila se actualiza sola cuando se registra desde este tablero o desde la planilla.</div>';
+    +'La fila se actualiza sola cuando se registra desde este tablero o desde la planilla.</div>'
+    +'<div class="alerta w">▲ <b>Recuento en revisión.</b> Los registros anteriores al 24 de agosto '
+    +'pueden estar por debajo de lo realmente aplicado: el formulario pedía el total de la categoría '
+    +'y un segundo registro sobrescribía al primero. Las entrevistas a actores se recontaron contra '
+    +'la matriz de contactos del 20 de agosto. Antes de corregir una fila a mano, conviene avisar a '
+    +'la coordinación.</div>';
 }
 
 /* --- 06 · tabla por comunidad --- */
@@ -1111,8 +1123,11 @@ function tablaComunidades(){
     const badge = x.e==='Completado' ? '<span class="badge ok">Completado</span>'
                 : x.e==='Reprogramado'? '<span class="badge re">Reprogramado</span>'
                 : '<span class="badge pe">Pendiente</span>';
+    /* «Por determinar» y no un guion: un guion en esta columna se leía como
+       si la comunidad no hubiera sido visitada, cuando lo que falta es el
+       dato de tenencia (D. Martuccelli, 24-ago-2026). */
     const cj = x.cj==='si'?'Con certeza jurídica' : x.cj==='no'?'Sin certeza jurídica'
-              : '<span style="color:var(--muted)">—</span>';
+              : '<span style="color:var(--muted)">Por determinar</span>';
     const dv = dif>0 ? '<span class="over">+'+dif+'</span>'
              : (dif<0 && x.e==='Completado') ? '<span class="under">'+dif+'</span>'
              : dif<0 ? '<span style="color:var(--muted)">'+dif+'</span>' : '—';
