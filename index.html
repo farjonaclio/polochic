@@ -238,6 +238,7 @@ footer b{color:var(--ink-2)}
 :root[data-theme="dark"] .reg .msg.warn{background:#2E2412}
 .reg .cerrar{background:none;border:none;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
 .reg .meta-act{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+.reg .ayuda{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45}
 /* lo ya registrado: se ve antes de cargar, para no duplicar */
 .reg-lista{margin-top:8px;font-size:11.5px}
 .reg-lista ul{list-style:none;margin:0;padding:0;border-left:2px solid var(--ring);padding-left:10px}
@@ -411,15 +412,17 @@ footer b{color:var(--ink-2)}
 
     <div class="fila2">
       <div>
-        <label for="reg-detalle">Qué se aplicó, o a quién</label>
+        <label for="reg-detalle" id="reg-detalle-lbl">¿A quién se entrevistó?</label>
         <input type="text" id="reg-detalle" maxlength="160"
-               placeholder="Institución y persona, o comunidad">
+               placeholder="Institución y persona">
       </div>
       <div>
         <label for="reg-fecha">Fecha</label>
         <input type="date" id="reg-fecha">
       </div>
     </div>
+
+    <div class="ayuda" id="reg-ayuda"></div>
 
     <label for="reg-quien">Quién reporta</label>
     <input type="text" id="reg-quien" placeholder="Nombre y apellido" maxlength="80">
@@ -1246,10 +1249,35 @@ const REG = {
           +'<button class="quitar" data-x="'+x.replace(/"/g,'&quot;')+'">quitar</button></li>').join('')+'</ul>'
       : '<div class="vacio">Todavía no hay aplicaciones registradas.</div>';
   },
+  /* El campo cambia de nombre según el instrumento. Con una etiqueta
+     genérica —«qué se aplicó o a quién»— alguien escribió «1» y puso el
+     nombre en las notas: la etiqueta no decía qué se esperaba. Preguntar
+     lo concreto de cada bloque es lo que evita ese error. */
+  ETIQ: {
+    'Entrevista a actores':      ['¿A quién se entrevistó?', 'Institución y persona',
+                                  'Una entrevista por registro. Escribí la institución y, si la tenés, '
+                                 +'la persona: «PDH Río — Shesly Pineda». Si se hicieron dos, se registran '
+                                 +'de a una.'],
+    'Grupo focal beneficiarios': ['¿Dónde se hizo?', 'Sede o comunidades',
+                                  'La sede o las comunidades que participaron.'],
+    'Grupo focal funcionarios':  ['¿Dónde se hizo?', 'Sede o institución',
+                                  'La sede o la institución que participó.'],
+    'Hoja de vida':              ['¿A quién?', 'Nombre o perfil',
+                                  'La persona o el perfil de quien se levantó la hoja de vida.'],
+    'Observación':               ['¿Dónde se observó?', 'Espacio o actividad',
+                                  'El espacio o la actividad observada.']
+  },
+  etiquetar(b){
+    const e = REG.ETIQ[b] || ['¿Qué se aplicó?', 'Descripción breve', ''];
+    $('#reg-detalle-lbl').textContent = e[0];
+    $('#reg-detalle').placeholder = e[1];
+    $('#reg-ayuda').textContent = e[2];
+  },
   mostrarEstado(){
     const i=REG.actual(); if(!i) return;
     $('#reg-estado').textContent = 'Registradas: '+i.log+' de '+i.meta
       + (i.f? ' · agendada '+dm(i.f) : ' · sin fecha en el calendario');
+    REG.etiquetar(i.b);
     REG.pintarLista();
     $('#reg-detalle').value='';
     if(i.f) $('#reg-fecha').value = i.f;
@@ -1288,7 +1316,13 @@ const REG = {
 
     if(!i)       return REG.msg('Elegí una aplicación.','err');
     if(!detalle) return REG.msg(accion==='quitar' ? 'No se pudo identificar el registro.'
-                                : 'Indicá qué se aplicó o a quién.','err');
+                                : 'Falta completar «'+$('#reg-detalle-lbl').textContent+'».','err');
+    /* Un número solo en este campo significa que la persona todavía está
+       pensando en cantidades. Se avisa acá y no después del envío. */
+    if(accion!=='quitar' && /^\d+$/.test(detalle))
+      return REG.msg('Ahí no va una cantidad sino el nombre: '
+        +$('#reg-detalle-lbl').textContent.toLowerCase().replace(/[¿?]/g,'')
+        +'. Se registra una aplicación por vez y el total lo suma el sistema.','err');
     if(!quien)   return REG.msg('Indicá quién reporta.','err');
     if(!codigo)  return REG.msg('Falta el código de registro.','err');
 
@@ -1306,7 +1340,16 @@ const REG = {
                                notas:$('#reg-notas').value.trim(), codigo })
       });
       const j = await r.json();
-      if(!j.ok) return REG.msg(j.error || 'No se pudo registrar.','err');
+      if(!j.ok){
+        /* «Cantidad inválida» solo lo dice el receptor anterior, el que
+           esperaba un total. Si aparece, el problema no es lo que la
+           persona escribió sino que el servidor todavía no se actualizó:
+           conviene decirlo así y no dejarla corrigiendo el formulario. */
+        if(/cantidad inv/i.test(j.error||''))
+          return REG.msg('El servidor de registros todavía no está actualizado, por eso '
+            +'rechaza el envío. No es un error de lo que escribiste. Avisá a coordinación.','err');
+        return REG.msg(j.error || 'No se pudo registrar.','err');
+      }
 
       REG.msg((accion==='quitar' ? '' : 'Registrado · ') + j.mensaje
               + (j.aviso ? ' ' + j.aviso : ''), j.aviso ? 'warn' : 'ok');
