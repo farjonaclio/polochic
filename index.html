@@ -91,6 +91,7 @@ h3{font-size:13.5px;font-weight:700;margin:0 0 9px}
 .kpi.hero{border-top-color:var(--magenta)}
 .kpi.b1{border-top-color:var(--prev)} .kpi.b2{border-top-color:var(--petroleo)}
 .kpi.b3{border-top-color:var(--verde)}
+.kpi.b0{border-top-color:var(--warn)}
 .kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;
   margin-bottom:7px;min-height:2.6em}
 .kpi .v{font-size:29px;font-weight:700;line-height:1;letter-spacing:-.02em}
@@ -499,7 +500,7 @@ const DRIVE = 'https://drive.google.com/drive/u/2/folders/18ibON_Ngo_dg9lnNQ5Lo5
    ================================================================== */
 const CFG = {
   inicio : '2026-07-29',
-  cierre : '2026-09-03',
+  cierre : '2026-09-05',   /* cronograma del 30-ago al 5-sep */
   corte  : '2026-08-07',
   /* calendario vigente: distribución de Pilar Maldonado del 11-ago-2026 */
   encuestadores : 2,
@@ -1163,13 +1164,26 @@ function carga(){
   const c=$('#carga'); c.innerHTML='';
   const pend = CFG.com.filter(x=>x.e!=='Completado');
   const pendN = pend.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
-  const prox = pend.filter(x=>x.a.some(f=>f<='2026-08-17'));
-  const proxN = prox.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
+
+  /* El corte parte la agenda en dos, y la fecha sale del dato: antes
+     estaba escrita a mano y con el paso de los días el tablero seguía
+     hablando de un límite que ya había pasado. Una comunidad cuya última
+     fecha de agenda quedó atrás no está «próxima»: está sin agenda
+     vigente, y esa es la cifra que hay que poder ver. */
+  const hoy = new Date(Date.now() - new Date().getTimezoneOffset()*6e4)
+                .toISOString().slice(0,10);
+  const ult = x => x.a[x.a.length-1];
+  const venc  = pend.filter(x=> ult(x) <  hoy);
+  const vig   = pend.filter(x=> ult(x) >= hoy);
+  const vencN = venc.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
+  const vigN  = vig.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
 
   const g=el('div','grid g3');
-  [[fmt(pendN), 'encuestas por aplicar', pend.length+' comunidades en agenda', 'b1'],
-   [fmt(proxN), 'agendadas hasta el 17 de agosto', prox.length+' comunidades', 'b2'],
-   [fmt(pendN-proxN), 'agendadas del 18 de agosto en adelante', 'Cierre de campo: 3 de septiembre', 'b3']
+  [[fmt(pendN), 'encuestas por aplicar', pend.length+' comunidades', 'b1'],
+   [fmt(vencN), 'sin agenda vigente',
+      venc.length+' comunidad(es) cuya última fecha prevista ya pasó', vencN? 'b0':'b2'],
+   [fmt(vigN),  'con agenda por delante',
+      'Cierre de campo: '+dm(CFG.cierre), 'b3']
   ].forEach(([v,l,f,k])=>{
     const d=el('div','kpi '+k);
     d.append(el('div','l',l));
