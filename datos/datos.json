@@ -1,10 +1,10 @@
 {
  "avisos": [
-  "8 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
-  "17 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
+  "9 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
+  "19 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-08-19",
- "generado": "2026-08-26T08:26:51-06:00",
+ "corte": "2026-08-26",
+ "generado": "2026-08-27T18:57:19-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -50,7 +50,7 @@
   },
   "fun": {
    "porCom": {
-    "(sin comunidad)": 17
+    "(sin comunidad)": 19
    },
    "porComDia": {
     "(sin comunidad)|2026-07-31": 1,
@@ -58,30 +58,32 @@
     "(sin comunidad)|2026-08-14": 1,
     "(sin comunidad)|2026-08-17": 3,
     "(sin comunidad)|2026-08-18": 8,
-    "(sin comunidad)|2026-08-19": 1
+    "(sin comunidad)|2026-08-19": 1,
+    "(sin comunidad)|2026-08-26": 2
    },
    "porEnc": {},
-   "sinComunidad": 17,
+   "sinComunidad": 19,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 17
+   "total": 19
   },
   "ins": {
    "porCom": {
-    "(sin comunidad)": 8
+    "(sin comunidad)": 9
    },
    "porComDia": {
     "(sin comunidad)|2026-07-31": 1,
     "(sin comunidad)|2026-08-13": 2,
     "(sin comunidad)|2026-08-16": 1,
     "(sin comunidad)|2026-08-18": 1,
-    "(sin comunidad)|2026-08-19": 3
+    "(sin comunidad)|2026-08-19": 3,
+    "(sin comunidad)|2026-08-26": 1
    },
    "porEnc": {},
-   "sinComunidad": 8,
+   "sinComunidad": 9,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 8
+   "total": 9
   },
   "lid": {
    "porCom": {
