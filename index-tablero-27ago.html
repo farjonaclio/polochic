@@ -1,0 +1,1646 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Avance del levantamiento · Evaluación final Polochic · Programa Conjunto · CliO Consulting</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+/* ------------------------------------------------------------------
+   Sistema visual CliO Consulting — heredado de Línea Base CFD (Honduras).
+   El par de series NO usa el petróleo de marca #00708A sino un paso más
+   luminoso (#0E93B0): el petróleo original queda a ΔE 5.3 del magenta en
+   visión protán y las dos series dejan de distinguirse. Es una decisión
+   de accesibilidad, no un error de marca.
+   ------------------------------------------------------------------ */
+:root{
+  color-scheme: light;
+  --azul:#1E2F42; --magenta:#FF0068; --verde:#1CE56D; --petroleo:#00708A; --crema:#F3F8E8;
+  --plane:#F3F8E8; --surface:#FFFFFF; --panel:#1E2F42;
+  --ink:#1E2F42; --ink-2:#5A6470; --muted:#8A94A2;
+  --grid:#E3EAE0; --axis:#C2CFCB; --track:#DDE5DA; --ring:rgba(30,47,66,.12);
+  --real:#FF0068; --prev:#0E93B0;
+  --real-wash:#FFE3EE; --prev-wash:#DFF1F6;
+  --ok:#12A050; --warn:#E8A33D; --crit:#C0392B;
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0D161F; --surface:#152230; --panel:#0D161F;
+  --ink:#FFFFFF; --ink-2:#BFCBD6; --muted:#8A94A2;
+  --grid:#22303D; --axis:#38495A; --track:#26343F; --ring:rgba(255,255,255,.13);
+  --real:#F72E77; --prev:#1B9CB8;
+  --real-wash:#3A1526; --prev-wash:#0F2C35;
+  --ok:#1CE56D; --warn:#E8A33D; --crit:#E05B4A;
+  --crema:#152230;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--plane);color:var(--ink);
+  font:15px/1.5 "Century Gothic","CenturyGothic","Questrial","Futura","Trebuchet MS",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased}
+
+/* ---------- banda superior ---------- */
+.band{background:var(--panel);color:#fff;padding:22px 0 26px}
+.band .inner{max-width:1160px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;
+  align-items:flex-end;gap:24px;flex-wrap:wrap}
+.band .rule{width:64px;height:4px;background:var(--verde);margin:14px 0 10px}
+.band h1{font-size:28px;font-weight:700;line-height:1.15;letter-spacing:-.005em;margin:0}
+.band h1 em{font-style:normal;background:var(--magenta);padding:0 7px;margin-left:-2px}
+.band .sub{font-size:12.5px;color:#BFCBD6;margin:8px 0 0;max-width:56ch}
+.logos{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logos img{height:26px;width:auto;display:block}
+.logos .sep{width:1px;height:24px;background:rgba(255,255,255,.25)}
+.logos .txt{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#BFCBD6;line-height:1.35}
+.logos .txt b{display:block;font-size:12.5px;letter-spacing:.04em;color:#fff}
+.meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.meta b{font-size:14.5px}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(255,255,255,.28);
+  border-radius:999px;padding:4px 12px;font-size:11px;white-space:nowrap}
+.chip.on{border-color:var(--verde);color:var(--verde)}
+.chip.off{border-color:rgba(255,255,255,.3);color:#BFCBD6}
+.chip.err{border-color:var(--magenta);color:#FF8FBB}
+.chip.wait{border-color:var(--warn);color:var(--warn)}
+button.tgl{cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.28);color:#BFCBD6;
+  border-radius:999px;padding:4px 12px;font-size:11px;font-family:inherit}
+button.tgl:hover{border-color:#fff;color:#fff}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px 64px}
+.card{background:var(--surface);border:1px solid var(--ring);border-radius:14px;padding:18px 20px 20px;margin-top:14px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:860px){.g2,.g3{grid-template-columns:1fr}}
+
+.pill{display:inline-flex;align-items:baseline;gap:9px;background:var(--crema);
+  border-radius:0 999px 999px 0;padding:6px 18px 6px 20px;margin:0 0 4px -20px}
+.pill::before{content:"❯";color:var(--magenta);font-size:11px;font-weight:700}
+.pill .n{font-size:19px;font-weight:700;color:var(--petroleo);font-variant-numeric:tabular-nums}
+:root[data-theme="dark"] .pill{background:#1B2A38}
+:root[data-theme="dark"] .pill .n{color:#4FC6DE}
+h2{font-size:17px;font-weight:700;margin:0}
+h3{font-size:13.5px;font-weight:700;margin:0 0 9px}
+.sub{font-size:12.5px;color:var(--ink-2);margin:6px 0 14px;max-width:88ch}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:14px;margin-top:14px}
+.kpi{background:var(--surface);border:1px solid var(--ring);border-radius:12px;padding:13px 14px;
+  border-top:3px solid var(--track)}
+.kpi.hero{border-top-color:var(--magenta)}
+.kpi.b1{border-top-color:var(--prev)} .kpi.b2{border-top-color:var(--petroleo)}
+.kpi.b3{border-top-color:var(--verde)}
+.kpi.b0{border-top-color:var(--warn)}
+.kpi .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;
+  margin-bottom:7px;min-height:2.6em}
+.kpi .v{font-size:29px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.kpi .v small{font-size:13px;font-weight:400;color:var(--ink-2)}
+.kpi .v.neg{color:var(--crit)} .kpi .v.pos{color:var(--ok)} .kpi .v.wr{color:var(--warn)}
+.kpi .f{font-size:11.5px;color:var(--ink-2);margin-top:7px}
+@media(max-width:1080px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr);gap:8px}
+  .kpi.hero{grid-column:1/-1} .kpi .v{font-size:24px} .kpi .l{min-height:0}}
+
+/* ---------- barras meta / logrado ---------- */
+.rows{display:flex;flex-direction:column;gap:11px}
+.row{display:grid;grid-template-columns:196px 1fr 104px;gap:12px;align-items:center}
+.row .nm{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm i{font-style:normal;color:var(--muted);font-size:11px}
+.tk{position:relative;height:16px;background:var(--track);border-radius:3px}
+.tk>i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--real)}
+.tk>i.p{background:var(--prev)}
+.tk>u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.45}
+.row .vl{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:12.5px}
+.row .vl i{font-style:normal;color:var(--muted);font-weight:400}
+@media(max-width:620px){
+  .row{grid-template-columns:1fr auto;grid-template-areas:'n v' 't t';row-gap:7px}
+  .row .nm{grid-area:n;white-space:normal} .row .vl{grid-area:v} .tk{grid-area:t}}
+
+.pctrow{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;margin-bottom:11px}
+.pctrow .lb{font-size:12.5px}
+.pctrow .pv{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;font-size:12.5px}
+.pctrow .bb{grid-column:1/-1;height:9px;background:var(--track);border-radius:3px;position:relative}
+.pctrow .bb i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--prev)}
+
+/* ---------- tablas ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:12.5px}
+thead th{background:var(--petroleo);color:#fff;font-weight:700;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.05em;padding:9px 10px;text-align:left;position:sticky;top:0}
+thead th:first-child{border-radius:4px 0 0 0} thead th:last-child{border-radius:0 4px 0 0}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--grid);vertical-align:middle}
+tbody tr:nth-child(odd){background:color-mix(in srgb,var(--crema) 55%,var(--surface))}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td .m2{display:block;font-size:10.5px;color:var(--muted)}
+@media(max-width:620px){.tw::after{content:"‹ deslice para ver el resto ›";display:block;
+  font-size:10.5px;color:var(--muted);padding:6px 0 0}}
+
+/* semáforo */
+.sem{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
+.sem.v{background:var(--ok)} .sem.a{background:var(--warn)} .sem.r{background:var(--crit)}
+.sem.g{background:var(--muted)}
+.badge{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.badge.ok{color:var(--ok)} .badge.pe{color:var(--muted)} .badge.re{color:var(--warn)}
+.badge.al{color:var(--crit)}
+.over{color:var(--ok);font-weight:700} .under{color:var(--crit);font-weight:700}
+
+/* calendario heatmap */
+.mtab{border-collapse:collapse;width:100%;font-size:11.5px;min-width:520px}
+.mtab th{background:transparent;color:var(--muted);font-size:9.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;padding:5px 4px;text-align:center;border-bottom:1px solid var(--grid);position:static}
+.mtab th:first-child{text-align:left;width:170px}
+.mtab td{padding:4px;text-align:center;border-bottom:1px solid var(--grid)}
+.mtab td:first-child{text-align:left;font-size:11.5px}
+.mtab .c{display:inline-block;min-width:22px;padding:2px 5px;border-radius:3px;font-weight:700;
+  font-variant-numeric:tabular-nums}
+.mtab .pl{color:var(--muted)}
+.mtab .av.ok{color:var(--ok);font-weight:700} .mtab .av.al{color:var(--crit);font-weight:700}
+@media(max-width:760px){.mtab{font-size:10px} .mtab th:first-child{width:110px}}
+
+/* filtros */
+.fbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.fb{cursor:pointer;font-size:12px;font-weight:600;border:1px solid var(--ring);background:var(--surface);
+  color:var(--ink-2);border-radius:999px;padding:5px 13px;font-family:inherit}
+.fb:hover{border-color:var(--prev)}
+.fb.on{background:var(--azul);border-color:var(--azul);color:#fff}
+:root[data-theme="dark"] .fb.on{background:var(--prev);border-color:var(--prev);color:#08131b}
+
+/* alertas */
+.alerta{margin:10px 0 0;font-size:12px;color:var(--ink-2);background:var(--real-wash);
+  border-left:3px solid var(--crit);padding:9px 12px;border-radius:0 6px 6px 0}
+.alerta.w{background:#FDF3E2;border-left-color:var(--warn)}
+:root[data-theme="dark"] .alerta.w{background:#2E2412}
+.alerta.i{background:var(--prev-wash);border-left-color:var(--prev)}
+.alerta b{color:var(--ink)}
+
+/* gráfico */
+svg.ch{width:100%;display:block;overflow:visible}
+svg.ch text{font:11px "Century Gothic",system-ui,sans-serif;fill:var(--muted)}
+svg.ch text.lb{font-size:11px;font-weight:700}
+svg.ch .gl{stroke:var(--grid);stroke-width:1}
+svg.ch .ax{stroke:var(--axis);stroke-width:1}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:11.5px;color:var(--ink-2)}
+.legend i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:3px}
+.legend .sq{width:10px;height:10px;border-radius:2px;vertical-align:-1px}
+
+/* mapa */
+.mapbox{height:380px;border-radius:12px;overflow:hidden;border:1px solid var(--ring);background:var(--prev-wash)}
+.mapvacio{display:flex;align-items:center;justify-content:center;height:100%;font-size:12.5px;
+  color:var(--ink-2);text-align:center;padding:24px}
+
+/* acciones */
+.act{display:inline-flex;gap:8px;align-items:center;background:var(--magenta);color:#fff;text-decoration:none;
+  font-size:13px;font-weight:700;padding:11px 20px;border-radius:999px;border:none;cursor:pointer;font-family:inherit}
+.act:hover{filter:brightness(1.08)}
+.act.sec{background:transparent;color:var(--petroleo);border:1.5px solid var(--petroleo)}
+:root[data-theme="dark"] .act.sec{color:#4FC6DE;border-color:#4FC6DE}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+/* botón de fila: el mismo magenta, en el peso que tolera una tabla */
+.mini{background:transparent;color:var(--magenta);border:1px solid var(--magenta);
+      border-radius:7px;padding:4px 10px;font-family:inherit;font-size:11px;font-weight:600;
+      letter-spacing:.02em;cursor:pointer;white-space:nowrap}
+.mini:hover{background:var(--magenta);color:#fff}
+
+/* tooltip */
+.tip{position:fixed;pointer-events:none;background:var(--azul);color:#fff;font-size:11.5px;padding:7px 10px;
+  border-radius:6px;opacity:0;transition:opacity .1s;z-index:9999;white-space:pre;line-height:1.5;
+  box-shadow:0 4px 14px rgba(0,0,0,.2)}
+:root[data-theme="dark"] .tip{background:#000}
+
+footer{margin-top:26px;font-size:11px;color:var(--muted);line-height:1.6;max-width:100ch}
+footer p{margin:0 0 8px}
+footer b{color:var(--ink-2)}
+
+/* ---- modal de registro ------------------------------------------
+   Vive dentro del tablero: no abre una pestaña nueva ni muestra la
+   planilla. Solo aparece si hay endpoint configurado.            */
+.reg-bd{position:fixed;inset:0;background:rgba(13,22,31,.62);display:none;
+        align-items:center;justify-content:center;z-index:50;padding:20px}
+.reg-bd.on{display:flex}
+.reg{background:var(--surface);border:1px solid var(--ring);border-radius:14px;
+     width:100%;max-width:460px;max-height:90vh;overflow:auto;padding:22px 24px 24px}
+.reg h3{font-size:16px;margin:0 0 4px}
+.reg .sub{margin:0 0 16px}
+.reg label{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+           color:var(--muted);margin:13px 0 5px}
+.reg select,.reg input,.reg textarea{width:100%;box-sizing:border-box;font:inherit;font-size:13.5px;
+  background:var(--plane);color:var(--ink);border:1px solid var(--ring);border-radius:8px;padding:9px 11px}
+.reg select:focus,.reg input:focus,.reg textarea:focus{outline:none;border-color:var(--prev)}
+.reg textarea{resize:vertical;min-height:56px}
+.reg .fila2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reg .pie{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;align-items:center}
+.reg .msg{font-size:12.5px;margin-top:14px;padding:9px 12px;border-radius:0 6px 6px 0;display:none}
+.reg .msg.on{display:block}
+.reg .msg.ok{background:color-mix(in srgb,var(--ok) 12%,transparent);border-left:3px solid var(--ok)}
+.reg .msg.err{background:var(--real-wash);border-left:3px solid var(--crit)}
+.reg .msg.warn{background:#FDF3E2;border-left:3px solid var(--warn)}
+:root[data-theme="dark"] .reg .msg.warn{background:#2E2412}
+.reg .cerrar{background:none;border:none;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
+.reg .meta-act{font-size:11.5px;color:var(--ink-2);margin-top:6px}
+.reg .ayuda{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.45}
+/* lo ya registrado: se ve antes de cargar, para no duplicar */
+.reg-lista{margin-top:8px;font-size:11.5px}
+.reg-lista ul{list-style:none;margin:0;padding:0;border-left:2px solid var(--ring);padding-left:10px}
+.reg-lista li{display:flex;gap:8px;align-items:baseline;padding:2px 0;color:var(--ink-2)}
+.reg-lista li span{flex:1}
+.reg-lista li b{font-weight:600;color:var(--muted);font-size:10.5px}
+.reg-lista .quitar{border:none;background:none;color:var(--muted);cursor:pointer;
+  font-family:inherit;font-size:10.5px;padding:0;text-decoration:underline}
+.reg-lista .quitar:hover{color:var(--crit)}
+.reg-lista .vacio{color:var(--muted)}
+@media(max-width:520px){ .reg .fila2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="inner">
+    <div>
+      <div class="logos">
+        <img src="data:image/png;base64,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" alt="CliO Consulting">
+        <div class="sep"></div>
+        <div class="txt"><b>PROGRAMA CONJUNTO</b>Valle del Polochic · Guatemala</div>
+      </div>
+      <div class="rule"></div>
+      <h1>Avance del <em>levantamiento</em></h1>
+      <p class="sub">Evaluación final 2026 · Reducción de la conflictividad agraria en el Valle del
+        Polochic · Panzós, Senahú y Tucurú (Alta Verapaz) y El Estor (Izabal).</p>
+    </div>
+    <div class="meta">
+      <b id="corte">Corte al —</b>
+      <span class="chip off" id="fuente">Cargando fuente…</span>
+      <span class="chip off">◆ Datos agregados · sin información personal</span>
+      <button class="tgl" id="theme">Modo oscuro</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <div class="pill"><span class="n">01</span><h2>Producción diaria y acumulada</h2></div>
+    <p class="sub">Barras: aplicaciones registradas por día frente a lo agendado. Líneas: acumulado real
+      frente al acumulado previsto por el calendario de campo. La línea real se corta en la fecha de
+      corte; la prevista continúa hacia el cierre del 3 de septiembre.</p>
+    <div class="fbar" id="fbar"></div>
+    <div id="avisos"></div>
+    <div id="combo"></div>
+    <div class="legend">
+      <span><i class="sq" style="background:var(--prev)"></i>Agendado del día</span>
+      <span><i class="sq" style="background:var(--real)"></i>Levantado del día</span>
+      <span><i style="background:var(--prev)"></i>Acumulado previsto</span>
+      <span><i style="background:var(--real)"></i>Acumulado real</span>
+    </div>
+    <p class="sub" id="nota-vista" style="margin-top:14px;margin-bottom:0"></p>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">02</span><h2>Avance por municipio</h2></div>
+    <p class="sub">Matriz comunidad × día de aplicación. La intensidad del magenta es proporcional al
+      volumen levantado ese día. Un punto (·) significa sin actividad registrada, que no es lo mismo
+      que un cero: la columna Cuota compara contra la meta comprometida por comunidad.</p>
+    <div id="terrpanels"></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <div class="pill"><span class="n">03</span><h2>Instrumentos cuantitativos</h2></div>
+      <p class="sub" id="sub-cuant">Fuente: los cuatro formularios de KoboToolbox (servidor europeo) vía puente automatizado: beneficiarios, liderazgos comunitarios, actores institucionales y funcionarios públicos. Meta comprometida por el diseño muestral.</p>
+      <div class="rows" id="cuant"></div>
+      <div id="nota-cuant"></div>
+    </div>
+    <div class="card">
+      <div class="pill"><span class="n">04</span><h2>Instrumentos cualitativos</h2></div>
+      <p class="sub">Captura centralizada en la coordinación de campo: los cuatro equipos reportan a
+        una sola persona responsable del ingreso formal, para evitar duplicidades.</p>
+      <div class="rows" id="cuali"></div>
+      <div id="nota-cuali"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">05</span><h2>Detalle de aplicaciones cualitativas</h2></div>
+    <p class="sub">Una fila por aplicación comprometida, con lo que quedó registrado hasta el
+      momento. Sirve para revisar qué falta cargar sin abrir la planilla. El botón de cada fila
+      abre el registro con esa aplicación ya seleccionada.</p>
+    <div class="tw" id="tabla-cuali"></div>
+    <div id="nota-cuali-det"></div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">06</span><h2>Distribución territorial</h2></div>
+    <p class="sub">Círculos proporcionales al volumen levantado por municipio. El área —no el radio—
+      es proporcional al valor.</p>
+    <div class="grid g2">
+      <div><h3>Alta Verapaz</h3><div class="mapbox" id="mapa-av"></div></div>
+      <div><h3>Izabal</h3><div class="mapbox" id="mapa-iz"></div></div>
+    </div>
+    <div id="mapa-nota"></div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">07</span><h2>Control por comunidad</h2></div>
+    <p class="sub">Semáforo de cobertura sobre la meta comprometida: <b>rojo</b> bajo 70%,
+      <b>amarillo</b> 70–90%, <b>verde</b> sobre 90%. La diferencia respecto de la meta se reporta
+      por comunidad, sin netear entre comunidades.</p>
+    <div class="tw" id="tabla-com"></div>
+    <div id="alerta-com"></div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">08</span><h2>Carga pendiente y agenda</h2></div>
+    <p class="sub">Distribución de lo que resta aplicar según el calendario de campo vigente.</p>
+    <div id="carga"></div>
+  </div>
+
+  <div class="card">
+    <div class="pill"><span class="n">09</span><h2>Fuentes y respaldos</h2></div>
+    <p class="sub">Los datos cuantitativos provienen de los formularios de KoboToolbox y se
+      actualizan automáticamente. El microdato permanece en el entorno controlado del proyecto;
+      en este tablero solo se publican conteos agregados.</p>
+    <p class="sub">Desde el 24 de agosto de 2026, el avance cualitativo se registra por aplicación
+      individual y el total se calcula contando esos registros. Las entrevistas a actores previas a
+      esa fecha se reconstruyeron a partir de la matriz de contactos del 20 de agosto. Cada
+      registro conserva qué se aplicó, quién lo reportó y cuándo.</p>
+    <div class="acts">
+      <a class="act" id="lnk-kobo" href="#" target="_blank" rel="noopener">Abrir formularios Kobo</a>
+      <a class="act sec" id="lnk-drive" href="#" target="_blank" rel="noopener">Carpeta de respaldos</a>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>Fuente cuantitativa.</b> Formularios de KoboToolbox (servidor europeo). El puente
+      automatizado consulta la API cada 30 minutos con un token de servicio, calcula los agregados y
+      publica únicamente el resultado agregado. El microdato —consentimientos, identificación y
+      coordenadas de vivienda— nunca sale del entorno controlado.</p>
+    <p><b>Fuente cualitativa.</b> Grupos focales, entrevistas a actores, hojas de vida y
+      observaciones se registran de forma centralizada por la coordinación de campo. Cada registro
+      lleva fecha y responsable de ingreso.</p>
+    <p><b>Previsto.</b> El acumulado previsto se construye desde el calendario de campo por comunidad,
+      no desde una interpolación lineal. Cuando una comunidad tiene agenda en rango de fechas, la meta
+      se distribuye de forma pareja entre esos días.</p>
+    <p><b>Lectura de los vacíos.</b> El tablero distingue tres estados que no deben confundirse:
+      <b>—</b> no medido, <b>·</b> sin actividad registrada al corte, y <b>0</b> cero efectivo.</p>
+    <p><b>Doble adscripción.</b> El instrumento de liderazgos comunitarios aparece tanto en la lectura
+      de encuestas como en la de entrevistas grupales, por coherencia con el apartado 3.5 del diseño
+      metodológico. En el agregado global se cuenta <b>una sola vez</b>.</p>
+    <p id="pie"></p>
+  </footer>
+
+</div>
+
+<div class="tip" id="tip"></div>
+
+<!-- modal de registro; el botón que lo abre se inyecta en la sección 04
+     solo si hay endpoint configurado -->
+<div class="reg-bd" id="reg-bd">
+  <div class="reg" role="dialog" aria-modal="true" aria-labelledby="reg-tit">
+    <h3 id="reg-tit">Registrar aplicación</h3>
+    <p class="sub">Se registra <b>una aplicación por vez</b>: solo lo nuevo, nunca el total.
+      El total lo calcula el sistema contando lo registrado.</p>
+
+    <label for="reg-bloque">Tipo de instrumento</label>
+    <select id="reg-bloque"></select>
+
+    <label for="reg-nombre">Aplicación</label>
+    <select id="reg-nombre"></select>
+    <div class="meta-act" id="reg-estado"></div>
+    <div class="reg-lista" id="reg-lista"></div>
+
+    <div class="fila2">
+      <div>
+        <label for="reg-detalle" id="reg-detalle-lbl">¿A quién se entrevistó?</label>
+        <input type="text" id="reg-detalle" maxlength="160"
+               placeholder="Institución y persona">
+      </div>
+      <div>
+        <label for="reg-fecha">Fecha</label>
+        <input type="date" id="reg-fecha">
+      </div>
+    </div>
+
+    <div class="ayuda" id="reg-ayuda"></div>
+
+    <label for="reg-quien">Quién reporta</label>
+    <input type="text" id="reg-quien" placeholder="Nombre y apellido" maxlength="80">
+
+    <label for="reg-notas">Notas (opcional)</label>
+    <textarea id="reg-notas" maxlength="300" placeholder="Sede, participantes, observaciones…"></textarea>
+
+    <label for="reg-codigo">Código de registro</label>
+    <input type="password" id="reg-codigo" autocomplete="off" placeholder="••••••">
+
+    <div class="msg" id="reg-msg"></div>
+
+    <div class="pie">
+      <button class="cerrar" id="reg-cancelar">Cancelar</button>
+      <button class="act" id="reg-enviar" style="border:none;cursor:pointer">Registrar</button>
+    </div>
+  </div>
+</div>
+<script>
+/* ==================================================================
+   FUENTE DE DATOS EN VIVO
+   ------------------------------------------------------------------
+   El token de KoboToolbox NO puede vivir en este archivo: cualquiera
+   que abra el código fuente accedería al microdato completo. El puente
+   es un workflow de GitHub Actions que guarda el token en Secrets,
+   consulta la API v2 cada 30 minutos y hace commit de datos/datos.json
+   con SOLO agregados: conteos por comunidad, conteos por comunidad y
+   día, y centroides comunitarios con mínimo 3 registros.
+
+   Ruta relativa: el JSON viaja en el mismo repositorio que este HTML,
+   así que funciona igual en GitHub Pages, en un servidor propio o
+   abierto desde el disco.
+
+   Override para pruebas: ?datos=URL_DEL_JSON
+   ================================================================== */
+const qs = new URLSearchParams(location.search);
+const FUENTE_JSON = qs.get('datos') || 'datos/datos.json';
+
+/* ------------------------------------------------------------------
+   SEGUIMIENTO CUALITATIVO
+   Grupos focales, hojas de vida, observaciones y entrevistas a actores
+   no tienen formulario de Kobo: los aplica el equipo en terreno y los
+   reporta la coordinación. Se cargan desde una planilla de Google
+   publicada como CSV, para que la actualización no dependa de tocar
+   este archivo.
+
+   Si la planilla no responde, el tablero conserva la instantánea
+   embebida más abajo y lo declara. Nunca se queda en blanco.
+
+   Override para pruebas: ?cuali=URL_DEL_CSV
+   ------------------------------------------------------------------ */
+/* Endpoint del receptor de registros (Apps Script publicado como
+   aplicación web). Vacío = el tablero no muestra el botón de registro
+   y queda solo de lectura. El código de registro NO va acá: se valida
+   del lado del servidor, en el Apps Script. */
+const ENDPOINT_REGISTRO = qs.get('reg') ||
+  "https://script.google.com/macros/s/AKfycbzBEYJtpyjQjO4VFGEpjiaWiMdD8z22uZ5s5RWtU0PGuQhTFJdBcFhX-Nmqaw3BkHx2/exec";
+
+const FUENTE_CUALI = qs.get('cuali') ||
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRjVjvwRLfps8qFy3UrIGJZkAZHA-aUeiZgvwiAW0qMjgX9YCPUs6R19JKOIC4S_FCzdYGuC_jncRwK/pub?gid=309116880&single=true&output=csv";
+
+const KOBO = {
+  ben:'https://ee-eu.kobotoolbox.org/x/M4SCCiH0',
+  lid:'https://ee-eu.kobotoolbox.org/x/6TfpL1YN',
+  ins:'https://ee-eu.kobotoolbox.org/x/ZneLpqsn',
+  fun:'https://ee-eu.kobotoolbox.org/x/gO0SgRm8'
+};
+const DRIVE = 'https://drive.google.com/drive/u/2/folders/18ibON_Ngo_dg9lnNQ5Lo5NXJT-etf45m';
+
+/* ==================================================================
+   CONFIGURACIÓN DEL OPERATIVO
+   Transcrita del tablero interno del equipo (corte 07-ago-2026).
+   Mientras el puente no esté conectado, este bloque es la instantánea.
+   ================================================================== */
+const CFG = {
+  inicio : '2026-07-29',
+  cierre : '2026-09-05',   /* cronograma del 30-ago al 5-sep */
+  corte  : '2026-08-07',
+  /* calendario vigente: distribución de Pilar Maldonado del 11-ago-2026 */
+  encuestadores : 2,
+  diasBen : null,       /* serie diaria real; la llena el puente */
+  cualiVivo : false,
+  cualiIgnoradas : 0,
+  vivo : false,          /* lo pone en true la carga del puente */
+  avisosPuente : [],
+  reconocidas : 0,
+
+  /* Los otros dos formularios web —actores institucionales y funcionarios
+     públicos— no tienen desagregación por comunidad, así que del puente
+     solo se toma el total.
+
+     Funcionarios públicos: la meta se comprometió como rango, 80 a 100
+     (D. Martuccelli, 13-ago-2026). Se dibuja la pista hasta 100 con una
+     marca en 80, que es el piso del compromiso, y el denominador se
+     rotula «80–100»: poner un número único sería inventar una precisión
+     que el compromiso no tiene.
+
+     Actores institucionales: la encuesta web es un instrumento distinto
+     de las 38 entrevistas a actores del apartado 04 —encuesta y
+     entrevista no son lo mismo— y también se comprometió como rango
+     80 a 100 (D. Martuccelli, 13-ago-2026). */
+  insLog : 0,
+  funLog : 0,
+  insSinCons : 0,
+  funSinCons : 0,
+  insMetaMin : 80,
+  insMetaMax : 100,
+  funMetaMin : 80,
+  funMetaMax : 100,
+
+  /* comunidad, municipio, departamento, meta, logrado, responsable,
+     agenda (rango), fecha de aplicación efectiva, estado, certeza jurídica */
+  com: [
+    {c:'Qotoxhá, Río Polochic',      m:'Panzós',  d:'Alta Verapaz', meta:11, log:12, r:'Marcelino Chub',              a:['2026-07-29'], ap:'2026-08-06', e:'Completado', cj:'si'},
+    {c:'El Rodeo',                   m:'Panzós',  d:'Alta Verapaz', meta:12, log:10, r:'Ángel Caal',                  a:['2026-07-29'], ap:'2026-08-06', e:'Completado', cj:'si'},
+    {c:'Luchadores San Esteban',     m:'Senahú',  d:'Alta Verapaz', meta:6,  log:7,  r:'Marcelino Chub',              a:['2026-07-30'], ap:'2026-08-03', e:'Completado', cj:'si'},
+    {c:'El Recuerdo',                m:'Panzós',  d:'Alta Verapaz', meta:12, log:12, r:'Ángel Caal',                  a:['2026-07-30'], ap:'2026-08-03', e:'Completado', cj:'si'},
+    {c:'Bella Flor',                 m:'Panzós',  d:'Alta Verapaz', meta:14, log:12, r:'Ángel Caal',                  a:['2026-07-30','2026-08-13'], ap:'2026-08-04', e:'En curso', cj:'no'},
+    {c:'Pancús',                     m:'Tucurú',  d:'Alta Verapaz', meta:13, log:14, r:'Marcelino Chub',              a:['2026-07-31'], ap:'2026-08-04', e:'Completado', cj:'si'},
+    {c:'Guaxpom',                    m:'Tucurú',  d:'Alta Verapaz', meta:19, log:23, r:'Marcelino Chub y Ángel Caal', a:['2026-07-31'], ap:'2026-08-05', e:'Completado', cj:'sd'},
+    {c:'Punto 15',                   m:'Panzós',  d:'Alta Verapaz', meta:12, log:0,  r:'Ángel Caal',                  a:['2026-08-11'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Tinajas',                    m:'Panzós',  d:'Alta Verapaz', meta:10, log:0,  r:'Marcelino Chub',              a:['2026-08-13'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Paraná',                     m:'Panzós',  d:'Alta Verapaz', meta:10, log:0,  r:'Marcelino Chub',              a:['2026-08-14'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Agua Caliente',              m:'Panzós',  d:'Alta Verapaz', meta:7,  log:0,  r:'Ángel Caal',                  a:['2026-08-13'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Pombaaq',                    m:'El Estor',d:'Izabal',       meta:22, log:0,  r:'Ángel Caal / Marcelino Chub', a:['2026-08-24','2026-08-25','2026-08-26'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'La Esperanza',               m:'Panzós',  d:'Alta Verapaz', meta:31, log:0,  r:'Ángel Caal / Marcelino Chub', a:['2026-08-24','2026-08-25','2026-08-26'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'San Marcos',                 m:'Panzós',  d:'Alta Verapaz', meta:42, log:0,  r:'Ángel Caal / Marcelino Chub', a:['2026-08-25','2026-08-26'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Qotoxha 2',                  m:'El Estor',d:'Izabal',       meta:10, log:0,  r:'Marcelino Chub',              a:['2026-08-26'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'Qotoxha 1 — CCUC',           m:'El Estor',d:'Izabal',       meta:10, log:0,  r:'Ángel Caal',                  a:['2026-08-26'], ap:null, e:'Pendiente', cj:'sd'},
+    {c:'La Isla',                    m:'Panzós',  d:'Alta Verapaz', meta:9,  log:0,  r:'Ángel Caal',                  a:['2026-08-27'], ap:null, e:'Pendiente', cj:'sd'}
+  ],
+
+  /* entrevista grupal de liderazgos: una por comunidad (17).
+     Doble adscripción declarada: se lee como encuesta y como entrevista
+     grupal, pero suma UNA sola vez al agregado global.            */
+  lid: [
+    {c:'Qotoxhá, Río Polochic',  log:1, e:'Completado'},
+    {c:'El Rodeo',               log:0, e:'Reprogramado'},
+    {c:'Luchadores San Esteban', log:1, e:'Completado'},
+    {c:'El Recuerdo',            log:0, e:'Reprogramado'},
+    {c:'Bella Flor',             log:1, e:'Completado'},
+    {c:'Pancús',                 log:1, e:'Pendiente'},
+    {c:'Guaxpom',                log:1, e:'Completado'},
+    {c:'Punto 15',               log:0, e:'Pendiente'},
+    {c:'Tinajas',                log:0, e:'Pendiente'},
+    {c:'Paraná',                 log:0, e:'Pendiente'},
+    {c:'Agua Caliente',          log:0, e:'Pendiente'},
+    {c:'Pombaaq',                log:0, e:'Pendiente'},
+    {c:'La Esperanza',           log:0, e:'Pendiente'},
+    {c:'San Marcos',             log:0, e:'Pendiente'},
+    {c:'Qotoxha 2',              log:0, e:'Pendiente'},
+    {c:'Qotoxha 1 — CCUC',       log:0, e:'Pendiente'},
+    {c:'La Isla',                log:0, e:'Pendiente'}
+  ],
+  /* lo que el tablero interno declaraba en su tarjeta de encuestas */
+  lidDeclarado: 7,
+
+  /* entrevistas a actores, por categoría metodológica (apartado 3.5) */
+  act: [
+    {g:'Cooperación internacional',  meta:3,  log:0},
+    {g:'Gobiernos locales',          meta:6,  log:0},
+    {g:'Titulares de obligaciones',  meta:10, log:0},
+    {g:'Autoridades ancestrales',    meta:2,  log:0},
+    {g:'Gobernanza comunitaria',     meta:2,  log:0},
+    {g:'Mediadores culturales',      meta:2,  log:1},
+    {g:'Gobernaciones',              meta:2,  log:0},
+    {g:'Sociedad civil',             meta:6,  log:0},
+    {g:'Sector privado',             meta:1,  log:0},
+    {g:'Academia',                   meta:4,  log:0}
+  ],
+
+  gf: [
+    {n:'Bella Flor, Tinajas, Punto 15, Agua Caliente y La Isla', s:'Telemán',  f:'2026-08-28', t:'ben', log:0},
+    {n:'Pancús y Guaxpom',                                       s:'La Tinta', f:'2026-08-31', t:'ben', log:0},
+    {n:'Luchadores San Esteban y Río Polochic',                  s:'Telemán',  f:'2026-08-31', t:'ben', log:0},
+    {n:'Pombaaq y La Esperanza',                                 s:'Telemán',  f:'2026-09-01', t:'ben', log:0},
+    {n:'San Marcos',                                             s:'Telemán',  f:'2026-09-01', t:'ben', log:0},
+    {n:'El Rodeo y El Recuerdo',                                 s:'Telemán',  f:'2026-09-02', t:'ben', log:0},
+    {n:'Qotoxha 1 y Paraná',                                     s:'Telemán',  f:'2026-09-02', t:'ben', log:0},
+    {n:'Qotoxha 2',                                              s:'Telemán',  f:'2026-09-03', t:'ben', log:0},
+    {n:'Lideresas indígenas con certeza jurídica',               s:'Telemán',  f:'2026-09-03', t:'ben', log:0},
+    {n:'Funcionarios públicos · grupo 1',                        s:'Por definir', f:null, t:'fun', log:0},
+    {n:'Funcionarios públicos · grupo 2',                        s:'Por definir', f:null, t:'fun', log:0},
+    {n:'Funcionarios públicos · grupo 3',                        s:'Por definir', f:null, t:'fun', log:0}
+  ],
+
+  hv: [
+    {n:'Mediador/a cultural',      r:'Pilar Maldonado y Ana Tiul', f:'2026-08-31', log:0},
+    {n:'Mujer de comunidad',       r:'Por asignar',                f:'2026-09-04', log:0},
+    {n:'Joven de comunidad',       r:'Por asignar',                f:'2026-09-04', log:0},
+    {n:'Líder comunitario',        r:'Por asignar',                f:'2026-09-04', log:0},
+    {n:'Funcionario/a capacitado/a',r:'Pilar Maldonado y Ana Tiul',f:'2026-08-31', log:0}
+  ],
+
+  obs: [
+    {n:'MICAI Izabal',          r:'Por asignar', log:0},
+    {n:'CDAC Alta Verapaz',     r:'Por asignar', log:0},
+    {n:'Mesa Municipal',        r:'Por asignar', log:0}
+  ],
+
+  /* Centroides de cabecera municipal. Provisionales: se sustituyen por la
+     mediana del GPS de Kobo (mínimo 3 registros, redondeada a ~110 m) en
+     cuanto el puente publique la hoja _GEO_PUB.                        */
+  geo: {
+    'Panzós'  :{lat:15.4006, lon:-89.6394, d:'Alta Verapaz'},
+    'Senahú'  :{lat:15.4025, lon:-89.8175, d:'Alta Verapaz'},
+    'Tucurú'  :{lat:15.3072, lon:-90.0658, d:'Alta Verapaz'},
+    'El Estor':{lat:15.5339, lon:-89.3489, d:'Izabal'}
+  },
+  geoEnVivo: false,
+
+  fuenteInstantanea: 'Tablero interno del equipo · corte 07-ago-2026',
+  generado: '2026-08-07'
+};
+
+/* ==================================================================
+   UTILIDADES
+   La aritmética de fechas se hace en días enteros desde epoch, nunca
+   con objetos Date: elimina de raíz el huso horario y el horario de verano.
+   ================================================================== */
+const $   = s => document.querySelector(s);
+const el  = (t,c,h)=>{const e=document.createElement(t); if(c)e.className=c;
+                      if(h!==undefined)e.innerHTML=h; return e};
+const mk  = (t,a)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);
+                    for(const k in a)e.setAttribute(k,a[k]); return e};
+const pc  = (a,b)=> b? Math.round(1000*a/b)/10 : 0;
+const fmt = n => new Intl.NumberFormat('es-GT').format(n);
+const dnum= s => Math.floor(Date.parse(s+'T00:00:00Z')/864e5);
+const dstr= n => new Date(n*864e5).toISOString().slice(0,10);
+const dm  = s => s.slice(8,10)+'/'+s.slice(5,7);
+const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto',
+             'septiembre','octubre','noviembre','diciembre'];
+const larga = s => Number(s.slice(8,10))+' de '+MESES[Number(s.slice(5,7))-1]+' de '+s.slice(0,4);
+
+const TIP = $('#tip');
+function tip(n,t){
+  n.addEventListener('mouseenter',()=>{TIP.textContent=t; TIP.style.opacity=1});
+  n.addEventListener('mousemove', e=>{TIP.style.left=Math.min(innerWidth-220,e.clientX+14)+'px';
+                                      TIP.style.top =(e.clientY-46)+'px'});
+  n.addEventListener('mouseleave',()=>{TIP.style.opacity=0});
+}
+function est(cls,txt){const f=$('#fuente'); f.className='chip '+cls; f.textContent=txt}
+
+/* ==================================================================
+   VISTAS
+   ================================================================== */
+const VISTAS = {
+  Todos        :{n:'Operativo completo',        u:'aplicaciones'},
+  Beneficiarios:{n:'Encuesta a beneficiarios',  u:'encuestas'},
+  Liderazgos   :{n:'Liderazgos comunitarios',   u:'entrevistas grupales'},
+  Actores      :{n:'Entrevistas a actores',     u:'entrevistas'},
+  Cualitativo  :{n:'Grupos focales y registros',u:'aplicaciones'}
+};
+let VISTA = 'Todos';
+
+/* ------------------------------------------------------------------
+   Totales por instrumento.
+   El agregado global cuenta liderazgos UNA vez, pese a su doble
+   adscripción metodológica (encuesta + entrevista grupal).
+   ------------------------------------------------------------------ */
+const T = {};
+function totales(){
+  const sum=(a,f)=>a.reduce((s,x)=>s+f(x),0);
+  T.ben  = {meta:sum(CFG.com,x=>x.meta),        log:sum(CFG.com,x=>x.log)};
+  T.lid  = {meta:CFG.lid.length,                log:sum(CFG.lid,x=>x.log)};
+  T.act  = {meta:sum(CFG.act,x=>x.meta),        log:sum(CFG.act,x=>x.log)};
+  T.gf   = {meta:CFG.gf.length,                 log:sum(CFG.gf,x=>x.log)};
+  T.hv   = {meta:CFG.hv.length,                 log:sum(CFG.hv,x=>x.log)};
+  T.obs  = {meta:CFG.obs.length,                log:sum(CFG.obs,x=>x.log)};
+  T.global = {
+    meta: T.ben.meta + T.lid.meta + T.act.meta + T.gf.meta + T.hv.meta + T.obs.meta,
+    log : T.ben.log  + T.lid.log  + T.act.log  + T.gf.log  + T.hv.log  + T.obs.log
+  };
+  /* excedente y faltante se calculan por comunidad, sin netear entre ellas */
+  T.sobre  = sum(CFG.com.filter(x=>x.log>x.meta), x=>x.log-x.meta);
+  T.deficit= sum(CFG.com.filter(x=>x.e==='Completado' && x.log<x.meta), x=>x.meta-x.log);
+  T.cerradas = CFG.com.filter(x=>x.e==='Completado').length;
+  T.iniciadas= CFG.com.filter(x=>x.log>0).length;
+  T.cerradasBajo = CFG.com.filter(x=>x.e==='Completado' && x.log<x.meta);
+}
+
+/* ==================================================================
+   SERIE DIARIA: previsto vs real
+   El previsto sale del calendario de campo por comunidad. Cuando la
+   agenda es un rango, la meta se reparte de forma pareja entre esos días
+   con el residuo a los primeros, para que la suma cuadre exactamente.
+   ================================================================== */
+function serie(vista){
+  const planD={}, realD={};
+  const add=(o,f,v)=>{ if(!f) return; o[f]=(o[f]||0)+v };
+
+  const usaBen = vista==='Todos' || vista==='Beneficiarios';
+  const usaLid = vista==='Todos' || vista==='Liderazgos';
+  const usaCua = vista==='Todos' || vista==='Cualitativo';
+  const usaAct = vista==='Todos' || vista==='Actores';
+
+  if(usaBen){
+    /* el plan siempre sale del calendario por comunidad */
+    CFG.com.forEach(x=>{
+      const n=x.a.length, base=Math.floor(x.meta/n), resto=x.meta-base*n;
+      x.a.forEach((f,i)=> add(planD,f, base+(i<resto?1:0)));
+    });
+    /* el real sale del dato diario si el puente está conectado; si no,
+       se atribuye a la fecha de aplicación declarada. La diferencia
+       importa: la atribución hace escalones y desvirtúa el ritmo. */
+    if(CFG.diasBen) Object.keys(CFG.diasBen).forEach(f=> add(realD,f,CFG.diasBen[f]));
+    else CFG.com.forEach(x=>{ if(x.log>0) add(realD, x.ap||x.a[x.a.length-1], x.log) });
+  }
+  if(usaLid) CFG.lid.forEach((x,i)=>{
+    const c=CFG.com.find(y=>y.c===x.c); if(!c) return;
+    add(planD, c.a[0], 1);
+    if(x.log) add(realD, c.ap||c.a[0], x.log);
+  });
+  if(usaCua){
+    CFG.gf .forEach(x=>{ if(x.f){add(planD,x.f,1); if(x.log)add(realD,x.f,x.log);} });
+    CFG.hv .forEach(x=>{ if(x.f){add(planD,x.f,1); if(x.log)add(realD,x.f,x.log);} });
+  }
+  if(usaAct){
+    /* las entrevistas a actores no tienen calendario cargado: se
+       distribuyen de forma pareja en la ventana restante de campo */
+    const pend = T.act.meta;
+    const d0=dnum('2026-08-12'), d1=dnum(CFG.cierre), nd=d1-d0+1;
+    const base=Math.floor(pend/nd), resto=pend-base*nd;
+    for(let i=0;i<nd;i++) add(planD, dstr(d0+i), base+(i<resto?1:0));
+    if(T.act.log) add(realD, CFG.corte, T.act.log);
+  }
+
+  const d0=dnum(CFG.inicio), dC=dnum(CFG.corte);
+  /* la ventana llega hasta el último día con agenda, aunque exceda el cierre
+     comprometido: una aplicación programada fuera de plazo es información, no
+     un dato a descartar en silencio. */
+  const dF=Math.max(dnum(CFG.cierre), ...Object.keys(planD).map(dnum));
+  const s=[]; let acR=0, acP=0;
+  for(let d=d0; d<=dF; d++){
+    const f=dstr(d);
+    acP += (planD[f]||0);
+    const futuro = d>dC;
+    if(!futuro) acR += (realD[f]||0);
+    s.push({f, real: futuro?null:(realD[f]||0), prev: planD[f]||0,
+            acR: futuro?null:acR, acP});
+  }
+  const meta = s.length? s[s.length-1].acP : 0;
+  const n    = acR;
+  const planHoy = s.filter(p=>dnum(p.f)<=dC).reduce((a,p)=>a+p.prev,0);
+  const diasEf  = s.filter(p=>p.real>0).length;
+  const ndias   = dC-d0+1;
+  /* meta comprometida por el diseño, que puede exceder lo que el calendario
+     efectivamente cubre: la diferencia son unidades sin fecha asignada. */
+  const metaComp = {Todos:T.global.meta, Beneficiarios:T.ben.meta, Liderazgos:T.lid.meta,
+                    Actores:T.act.meta, Cualitativo:T.gf.meta+T.hv.meta+T.obs.meta}[vista];
+  return {s, meta, metaComp, sinFecha: metaComp-meta, n, planHoy, brecha:n-planHoy, diasEf, ndias,
+          ritmo: Math.round(10*n/ndias)/10,
+          ritmoEf: diasEf? Math.round(10*n/diasEf)/10 : 0};
+}
+
+/* ==================================================================
+   GRÁFICO COMBO — barras diarias arriba, acumulado abajo, eje X compartido
+   ================================================================== */
+function curva(cont, D, O){
+  O = O||{};
+  const s = D.s.filter(p=>dnum(p.f)>=dnum(CFG.inicio));
+  const W=1000, L=48, R=62, TT=18, HB=O.alto||120, GAP=34, HL=(O.alto||120)*1.05, XB=26;
+  const H = TT+HB+GAP+HL+XB;
+  const svg = mk('svg',{class:'ch', viewBox:'0 0 '+W+' '+H});
+
+  const x  = i => L + i*(W-L-R)/Math.max(1,s.length-1);
+  const bw = Math.max(3, Math.min(13, (W-L-R)/Math.max(1,s.length)/2.5));
+  const maxD = Math.max(1, ...s.map(p=>Math.max(p.real||0, p.prev)));
+  const maxA = Math.max(D.meta, D.metaComp, ...s.map(p=>Math.max(p.acR||0, p.acP)));
+  const yB = v => TT+HB*(1-v/(maxD*1.22));
+  const yL = v => TT+HB+GAP+HL*(1-v/(maxA*1.10));
+
+  [0,.5,1].forEach(k=>{
+    svg.appendChild(mk('line',{class:'gl',x1:L,x2:W-R,y1:yB(maxD*1.22*k),y2:yB(maxD*1.22*k)}));
+    svg.appendChild(mk('line',{class:'gl',x1:L,x2:W-R,y1:yL(maxA*1.10*k),y2:yL(maxA*1.10*k)}));
+    const t1=mk('text',{x:L-8,y:yB(maxD*1.22*k)+4,'text-anchor':'end'}); t1.textContent=Math.round(maxD*1.22*k);
+    const t2=mk('text',{x:L-8,y:yL(maxA*1.10*k)+4,'text-anchor':'end'}); t2.textContent=Math.round(maxA*1.10*k);
+    svg.appendChild(t1); svg.appendChild(t2);
+  });
+  svg.appendChild(mk('line',{class:'ax',x1:L,x2:W-R,y1:TT+HB,y2:TT+HB}));
+  svg.appendChild(mk('line',{class:'ax',x1:L,x2:W-R,y1:TT+HB+GAP+HL,y2:TT+HB+GAP+HL}));
+
+  /* barras pareadas: previsto a la izquierda del tick, real a la derecha */
+  s.forEach((p,i)=>{
+    if(p.prev>0){
+      svg.appendChild(mk('rect',{x:x(i)-bw-1, y:yB(p.prev), width:bw,
+        height:Math.max(0,TT+HB-yB(p.prev)), fill:'var(--prev)', rx:1}));
+    }
+    if(p.real>0){
+      svg.appendChild(mk('rect',{x:x(i)+1, y:yB(p.real), width:bw,
+        height:Math.max(0,TT+HB-yB(p.real)), fill:'var(--real)', rx:1}));
+      if(s.length<=26 || p.real>=maxD*.35){
+        const t=mk('text',{class:'lb',x:x(i)+1+bw/2,y:yB(p.real)-4,'text-anchor':'middle',fill:'var(--real)'});
+        t.textContent=p.real; svg.appendChild(t);
+      }
+    }
+  });
+
+  /* Línea de meta: sólo se dibuja cuando el calendario NO alcanza la meta
+     comprometida. Si el plan cubre exactamente la meta —el caso normal— la
+     línea se superpondría al final del acumulado previsto y no informaría nada. */
+  if(Math.abs(D.meta - D.metaComp) > 0.5){
+    svg.appendChild(mk('line',{x1:L,x2:W-R,y1:yL(D.metaComp),y2:yL(D.metaComp),
+      stroke:'var(--crit)','stroke-width':1,'stroke-dasharray':'5 4'}));
+    const tm=mk('text',{class:'lb',x:L+4,y:yL(D.metaComp)-6,fill:'var(--crit)'});
+    tm.textContent='Meta comprometida · '+fmt(D.metaComp); svg.appendChild(tm);
+  }
+
+  /* acumulados */
+  const linea=(key,color)=>{
+    const pts=s.map((p,i)=> p[key]==null? null : x(i)+','+yL(p[key])).filter(Boolean);
+    if(!pts.length) return null;
+    svg.appendChild(mk('path',{d:'M'+pts.join('L'), fill:'none', stroke:color,
+      'stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'}));
+    const last=pts[pts.length-1].split(',');
+    svg.appendChild(mk('circle',{cx:last[0],cy:last[1],r:4,fill:color,
+      stroke:'var(--surface)','stroke-width':2}));
+    return {x:+last[0], y:+last[1], color, v:s.filter(p=>p[key]!=null).pop()[key]};
+  };
+  const et=[linea('acP','var(--prev)'), linea('acR','var(--real)')].filter(Boolean)
+             .sort((a,b)=>a.y-b.y);
+  for(let i=1;i<et.length;i++) if(et[i].y-et[i-1].y<15) et[i].y=et[i-1].y+15;
+  et.forEach(e=>{const t=mk('text',{class:'lb',x:e.x+8,y:e.y+4,fill:e.color});
+                 t.textContent=fmt(e.v); svg.appendChild(t)});
+
+  /* eje X y hit-rects */
+  const paso=(W-L-R)/Math.max(1,s.length-1);
+  const cada = s.length>34 ? 4 : (s.length>18?2:1);
+  s.forEach((p,i)=>{
+    /* el último tick sólo se rotula si no pisa al anterior rotulado */
+    const ultimoLimpio = i===s.length-1 && ((s.length-1) % cada) > cada/2;
+    if(i%cada===0 || ultimoLimpio){
+      const t=mk('text',{x:x(i),y:H-8,'text-anchor':'middle'}); t.textContent=dm(p.f);
+      svg.appendChild(t);
+    }
+    const r=mk('rect',{x:x(i)-paso/2,y:TT,width:paso,height:HB+GAP+HL,fill:'transparent'});
+    tip(r, larga(p.f)+'\nAgendado: '+p.prev+'   Levantado: '+(p.real==null?'—':p.real)
+          +'\nAcum. previsto: '+fmt(p.acP)+'   Acum. real: '+(p.acR==null?'—':fmt(p.acR)));
+    svg.appendChild(r);
+  });
+
+  cont.innerHTML=''; cont.appendChild(svg);
+}
+
+/* ==================================================================
+   COMPONENTES
+   ================================================================== */
+function fila(cont,o){
+  const r=el('div','row');
+  r.append(el('div','nm',o.nm));
+  /* Sin meta no es lo mismo que meta cero: la pista queda punteada y el valor
+     se rotula «s/m», nunca 0/0. */
+  if(!o.max){
+    const t=el('div','tk'); t.style.background='transparent';
+    t.style.border='1px dashed var(--track)';
+    tip(t, o.nm.replace(/<[^>]+>/g,'')+'\n'+fmt(o.v)+' registradas · sin meta asociada');
+    r.append(t);
+    r.append(el('div','vl', fmt(o.v)+' <i>/ s.m.</i>'));
+    cont.append(r); return;
+  }
+  const t=el('div','tk'); const i=el('i',o.cls||'');
+  i.style.width = Math.max(o.v?1.5:0, Math.min(100, 100*o.v/(o.max||1)))+'%';
+  t.append(i);
+  if(o.mark!=null && o.max){const u=el('u'); u.style.left=Math.min(100,100*o.mark/o.max)+'%'; t.append(u);}
+  tip(t, o.nm.replace(/<[^>]+>/g,'')+'\n'+fmt(o.v)+' de '+fmt(o.max)+'  ('+pc(o.v,o.max)+'%)'
+        +(o.tipx?'\n'+o.tipx:''));
+  r.append(t);
+  /* denTxt: para metas comprometidas como rango («80–100»), donde poner
+     un solo número sería inventar precisión que el compromiso no tiene. */
+  r.append(el('div','vl', o.den===false ? fmt(o.v)
+              : fmt(o.v)+' <i>/'+(o.denTxt || fmt(o.max))+'</i>'));
+  cont.append(r);
+}
+function tabla(cont, head, rows, opts){
+  opts=opts||{};
+  let h='<table><thead><tr>'+head.map((x,i)=>'<th'+(i&&!opts.txt?.includes?.(i)?'':'')+'>'+x+'</th>').join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{ h+='<tr>'+r.map((c,i)=>'<td'+(opts.num&&opts.num.includes(i)?' class="n"':'')+'>'+c+'</td>').join('')+'</tr>' });
+  h+='</tbody></table>';
+  cont.innerHTML=h;
+}
+const semClase = p => p>=90?'v' : p>=70?'a' : p>0?'r' : 'g';
+
+/* ==================================================================
+   RENDER
+   ================================================================== */
+function kpis(D){
+  const c=$('#kpis'); c.innerHTML='';
+  const pctG = pc(T.global.log, T.global.meta);
+  const cump = pc(D.n, D.planHoy);
+  const items=[
+    {l:'Avance general', v:pctG, u:'%', k:'hero',
+     f:fmt(T.global.log)+' de '+fmt(T.global.meta)+' aplicaciones'},
+    {l:'Encuestas a beneficiarios', v:fmt(T.ben.log), u:' de '+fmt(T.ben.meta), k:'b1',
+     f:pc(T.ben.log,T.ben.meta)+'% de la meta'},
+    {l:'Entrevistas a liderazgos', v:fmt(T.lid.log), u:' de '+fmt(T.lid.meta), k:'b1',
+     f:pc(T.lid.log,T.lid.meta)+'% de la meta'},
+    {l:'Comunidades con campo iniciado', v:T.iniciadas, u:' de '+CFG.com.length, k:'b2',
+     f:T.cerradas+' con levantamiento cerrado'},
+    {l:'Avance sobre el calendario', v:cump, u:'%', k:'b2',
+     f:'Previsto a la fecha de corte: '+fmt(D.planHoy)},
+    {l:'Ritmo diario', v:D.ritmoEf, u:'/día', k:'b3',
+     f:D.diasEf+' días de campo · '+CFG.encuestadores+' encuestadores'}
+  ];
+  items.forEach(o=>{
+    const k=el('div','kpi '+(o.k||''));
+    k.append(el('div','l',o.l));
+    k.append(el('div','v '+(o.c||''), o.v+(o.u?'<small>'+o.u+'</small>':'')));
+    k.append(el('div','f',o.f));
+    c.append(k);
+  });
+}
+
+function filtros(){
+  const c=$('#fbar'); c.innerHTML='';
+  const cnt={Todos:T.global.meta, Beneficiarios:T.ben.meta, Liderazgos:T.lid.meta,
+             Actores:T.act.meta, Cualitativo:T.gf.meta+T.hv.meta+T.obs.meta};
+  Object.keys(VISTAS).forEach(k=>{
+    const b=el('button','fb'+(k===VISTA?' on':''), k+' · '+cnt[k]);
+    b.dataset.f=k;
+    b.onclick=()=>{VISTA=k; pintar()};
+    c.append(b);
+  });
+}
+
+/* --- 02 · paneles por municipio con calendario heatmap --- */
+function paneles(){
+  const c=$('#terrpanels'); c.innerHTML='';
+  const munis=[...new Set(CFG.com.map(x=>x.m))];
+  const dias=[...new Set(CFG.com.map(x=>x.ap).filter(Boolean))].sort();
+
+  munis.forEach((m,idx)=>{
+    const coms=CFG.com.filter(x=>x.m===m);
+    const meta=coms.reduce((a,x)=>a+x.meta,0), log=coms.reduce((a,x)=>a+x.log,0);
+    const p=el('div',''); p.style.marginTop = idx? '26px':'0';
+    const head=el('div','');
+    head.style.cssText='display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:10px';
+    head.innerHTML='<h3 style="margin:0">'+m+' <span style="color:var(--muted);font-weight:400;font-size:11.5px">· '
+      +coms[0].d+' · '+coms.length+' comunidades</span></h3>'
+      +'<div style="font-size:12.5px;font-variant-numeric:tabular-nums"><b>'+fmt(log)+'</b>'
+      +' <span style="color:var(--muted)">de '+fmt(meta)+'</span> &nbsp;'
+      +'<span class="badge '+(pc(log,meta)>=90?'ok':pc(log,meta)>=70?'re':'al')+'">'+pc(log,meta)+'%</span></div>';
+    p.append(head);
+
+    const maxc=Math.max(1,...coms.map(x=>x.log));
+    let h='<div class="tw"><table class="mtab"><thead><tr><th>Comunidad</th>';
+    dias.forEach(d=>h+='<th>'+dm(d)+'</th>');
+    h+='<th>Total</th><th>Meta</th><th>Avance</th></tr></thead><tbody>';
+    coms.forEach(x=>{
+      h+='<tr><td>'+x.c+'</td>';
+      dias.forEach(d=>{
+        const v = (x.ap===d)? x.log : 0;
+        h+='<td>'+(v? '<span class="c" style="background:color-mix(in srgb,var(--real) '
+             +Math.round(14+56*v/maxc)+'%,transparent)">'+v+'</span>'
+             : '<span class="pl">·</span>')+'</td>';
+      });
+      const av=pc(x.log,x.meta);
+      h+='<td class="n"><b>'+x.log+'</b></td><td class="n">'+x.meta+'</td>'
+        +'<td class="n"><span class="av '+(av>100?'al':av>=100?'ok':'')+'">'+av+'%'
+        +(av>100?' ▲':'')+'</span></td></tr>';
+    });
+    h+='</tbody></table></div>';
+    p.insertAdjacentHTML('beforeend',h);
+
+    const sobre=coms.filter(x=>x.log>x.meta);
+    const bajo =coms.filter(x=>x.e==='Completado' && x.log<x.meta);
+  });
+}
+
+/* --- 03 y 04 · instrumentos --- */
+function instrumentos(){
+  const a=$('#cuant'); a.innerHTML='';
+  fila(a,{nm:'Beneficiarios',           v:T.ben.log, max:T.ben.meta, cls:''});
+  fila(a,{nm:'Liderazgos comunitarios',  v:T.lid.log, max:T.lid.meta, cls:'',
+          tipx:'Doble adscripción: también se lee como entrevista grupal'});
+  fila(a,{nm:'Actores institucionales',  v:CFG.insLog, max:CFG.insMetaMax,
+          mark:CFG.insMetaMin, cls:'p',
+          denTxt:CFG.insMetaMin+'–'+CFG.insMetaMax,
+          tipx:'Encuesta web · instrumento distinto de las entrevistas a actores '
+              +'del apartado 04 · meta comprometida como rango'});
+  fila(a,{nm:'Funcionarios públicos',    v:CFG.funLog, max:CFG.funMetaMax,
+          mark:CFG.funMetaMin, cls:'p',
+          denTxt:CFG.funMetaMin+'–'+CFG.funMetaMax,
+          tipx:'Meta comprometida como rango · la marca señala el piso de '+CFG.funMetaMin});
+
+  /* Notas de lectura, no alarmas: el tablero muestra el registro y explica
+     de dónde sale cuando puede confundirse con otra cifra. */
+  const nc = [];
+  if(CFG.lidDeclarado!==T.lid.log)
+    nc.push('Liderazgos comunitarios: se muestra el conteo del registro ('
+            +T.lid.log+'). La planificación anotaba '+CFG.lidDeclarado+'.');
+  const sc = CFG.insSinCons + CFG.funSinCons;
+  if(sc) nc.push(sc+' envío(s) llegaron sin consentimiento registrado y quedan fuera del '
+                +'conteo. Conviene revisarlos con el equipo de campo.');
+  $('#nota-cuant').innerHTML = nc.length
+    ? '<div class="alerta i">◆ '+nc.join('<br>◆ ')+'</div>' : '';
+
+  const b=$('#cuali'); b.innerHTML='';
+  fila(b,{nm:'Grupos focales',           v:T.gf.log,  max:T.gf.meta,  cls:'p',
+          tipx:'9 con beneficiarios + 3 con funcionarios públicos'});
+  fila(b,{nm:'Entrevistas a actores',    v:T.act.log, max:T.act.meta, cls:'p',
+          tipx:'10 categorías de actor · instrumento distinto de la encuesta web '
+              +'a actores institucionales del apartado 03'});
+  fila(b,{nm:'Hojas de vida',            v:T.hv.log,  max:T.hv.meta,  cls:'p'});
+  fila(b,{nm:'Observación participante', v:T.obs.log, max:T.obs.meta, cls:'p'});
+
+  const sinF = CFG.gf.filter(x=>!x.f).length;
+  $('#nota-cuali').innerHTML = sinF
+    ? '<p class="sub" style="margin-top:12px">'+sinF+' grupo(s) focal(es) con funcionarios públicos '
+      +'aún sin fecha asignada en el calendario.</p>' : '';
+}
+
+/* --- 05 · mapa --- */
+const _maps={};
+function mapa(){
+  const nota=$('#mapa-nota');
+  [['#mapa-av','Alta Verapaz'],['#mapa-iz','Izabal']].forEach(([id,dep])=>{
+    const cont=$(id); if(!cont) return;
+    const pts=Object.keys(CFG.geo).filter(m=>CFG.geo[m].d===dep).map(m=>({
+      m, lat:CFG.geo[m].lat, lon:CFG.geo[m].lon,
+      n:CFG.com.filter(x=>x.m===m).reduce((a,x)=>a+x.log,0),
+      meta:CFG.com.filter(x=>x.m===m).reduce((a,x)=>a+x.meta,0)
+    }));
+    const conDato = pts.filter(p=>p.n>0);
+    if(typeof L==='undefined'){
+      cont.innerHTML='<div class="mapvacio">Mapa no disponible: se requiere conexión a internet '
+        +'para cargar la cartografía.</div>'; return;
+    }
+    if(_maps[id]){_maps[id].remove(); delete _maps[id]}
+    cont.innerHTML='';
+    const map=L.map(cont,{scrollWheelZoom:false}); _maps[id]=map;
+    /* Teselas siempre en claro, también en modo oscuro: sobre teselas oscuras
+       los círculos de volumen pierden contraste y el relieve del valle deja de
+       leerse. Es deliberado, no un olvido. */
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+      {maxZoom:19, attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+    const maxN=Math.max(1,...pts.map(p=>p.n));
+    const col=getComputedStyle(document.body).getPropertyValue('--real').trim()||'#FF0068';
+    pts.forEach(p=>{
+      const r = p.n>0 ? 9+17*Math.sqrt(p.n/maxN) : 7;
+      L.circleMarker([p.lat,p.lon],{radius:r, color:p.n?col:'#8A94A2', weight:2,
+        fillColor:p.n?col:'#8A94A2', fillOpacity:p.n?.34:.12, dashArray:p.n?null:'3 3'})
+       .bindTooltip('<b>'+p.m+'</b><br>'+p.n+' de '+p.meta+' '+VISTAS.Beneficiarios.u
+         +' · '+pc(p.n,p.meta)+'% de su meta', {direction:'top'}).addTo(map);
+    });
+    if(pts.length===1) map.setView([pts[0].lat,pts[0].lon],10);
+    else map.fitBounds(L.latLngBounds(pts.map(p=>[p.lat,p.lon])).pad(.45));
+    setTimeout(()=>map.invalidateSize(),120);
+  });
+  const rep=Object.keys(CFG.geo).filter(m=>CFG.com.some(x=>x.m===m && x.log>0)).length;
+  nota.innerHTML='<div class="alerta i">◆ '+rep+' de '+Object.keys(CFG.geo).length
+    +' municipios con producción registrada al corte. '
+    +(CFG.geoEnVivo
+      ? 'Centroides recalculados con cada descarga a partir de la mediana del GPS de Kobo.'
+      : 'Centroides de cabecera municipal. Se sustituyen por la mediana del GPS de las '
+        +'aplicaciones (mínimo 3 registros, redondeada a ~110 m) cuando el instrumento '
+        +'registre coordenadas; la ubicación de cada vivienda nunca sale del entorno controlado.')
+    +'</div>';
+}
+
+/* --- 05 · detalle de aplicaciones cualitativas ---
+   El apartado 04 responde «cuánto llevamos»; este responde «cuál de
+   todas». Quien está cargando la información necesita poder revisar qué
+   quedó registrado y qué no, aplicación por aplicación, sin abrir la
+   planilla. Es la misma lista que alimenta el formulario de registro. */
+function tablaCuali(){
+  const esc = s => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                                       .replace(/"/g,'&quot;');
+  const L = REG.items();
+
+  const rows = L.map(i=>{
+    const av = pc(i.log, i.meta);
+    /* El estado escrito en la planilla manda; si está vacío se deduce
+       del conteo. Nunca se sobreescribe lo que alguien declaró. */
+    const e = i.est || (i.log>=i.meta ? 'Realizado' : i.log>0 ? 'En curso' : 'Pendiente');
+    const badge = /realizado/i.test(e) ? '<span class="badge ok">Realizado</span>'
+                : /curso/i.test(e)     ? '<span class="badge re">En curso</span>'
+                : '<span class="badge pe">Pendiente</span>';
+    const boton = ENDPOINT_REGISTRO
+      ? '<button class="mini" data-b="'+esc(i.b)+'" data-n="'+esc(i.n)+'">Registrar</button>'
+      : '';
+    return ['<span class="sem '+semClase(av)+'"></span>'+esc(i.n)
+              +'<span class="m2">'+esc(i.b)+'</span>',
+            i.det ? esc(i.det) : '<span style="color:var(--muted)">Por definir</span>',
+            i.f ? dm(i.f) : '<span style="color:var(--muted)">—</span>',
+            i.meta, i.log, badge,
+            i.nt ? esc(i.nt) : '<span style="color:var(--muted)">·</span>',
+            boton];
+  });
+
+  tabla($('#tabla-cuali'),
+    ['Aplicación','Sede o responsable','Fecha','Meta','Registradas','Estado','Notas',''],
+    rows, {num:[3,4]});
+
+  const hechas = L.filter(i=>i.log>=i.meta).length;
+  const sinFecha = L.filter(i=>!i.f).length;
+
+  /* El aviso ámbar sobre el recuento se retiró a pedido de la coordinación
+     (D. Martuccelli, 24-ago-2026). La nota de método queda en el apartado
+     09, que es donde corresponde: acá es una vista operativa, no un lugar
+     para advertencias. La trazabilidad no se pierde —está en REGISTROS y
+     en BITACORA— pero deja de ocupar la pantalla del equipo de campo. */
+  $('#nota-cuali-det').innerHTML =
+     '<div class="alerta i">◆ '+hechas+' de '+L.length+' aplicaciones cerradas. '
+    +(sinFecha ? sinFecha+' todavía sin fecha en el calendario. ' : '')
+    +'Cada registro suma una aplicación; el total lo cuenta el sistema.</div>';
+}
+
+/* --- 06 · tabla por comunidad --- */
+function tablaComunidades(){
+  const rows = CFG.com.map(x=>{
+    const av=pc(x.log,x.meta);
+    const dif=x.log-x.meta;
+    const badge = x.e==='Completado' ? '<span class="badge ok">Completado</span>'
+                : x.e==='Reprogramado'? '<span class="badge re">Reprogramado</span>'
+                : '<span class="badge pe">Pendiente</span>';
+    /* «Por determinar» y no un guion: un guion en esta columna se leía como
+       si la comunidad no hubiera sido visitada, cuando lo que falta es el
+       dato de tenencia (D. Martuccelli, 24-ago-2026). */
+    const cj = x.cj==='si'?'Con certeza jurídica' : x.cj==='no'?'Sin certeza jurídica'
+              : '<span style="color:var(--muted)">Por determinar</span>';
+    const dv = dif>0 ? '<span class="over">+'+dif+'</span>'
+             : (dif<0 && x.e==='Completado') ? '<span class="under">'+dif+'</span>'
+             : dif<0 ? '<span style="color:var(--muted)">'+dif+'</span>' : '—';
+    return ['<span class="sem '+semClase(av)+'"></span>'+x.c+'<span class="m2">'+x.m+' · '+x.d+'</span>',
+            cj, x.meta, x.log, av+'%', dv, x.r,
+            x.a.length>1? dm(x.a[0])+'–'+dm(x.a[x.a.length-1]) : dm(x.a[0]),
+            x.ap? dm(x.ap) : '—', badge];
+  });
+  tabla($('#tabla-com'),
+    ['Comunidad','Situación de tenencia','Meta','Logrado','Cobertura','Diferencia','Responsable','Agenda','Aplicación','Estado'],
+    rows, {num:[2,3,4,5]});
+
+  $('#alerta-com').innerHTML = '';
+}
+
+/* --- 07 · carga pendiente --- */
+function carga(){
+  const c=$('#carga'); c.innerHTML='';
+  const pend = CFG.com.filter(x=>x.e!=='Completado');
+  const pendN = pend.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
+
+  /* El corte parte la agenda en dos, y la fecha sale del dato: antes
+     estaba escrita a mano y con el paso de los días el tablero seguía
+     hablando de un límite que ya había pasado. Una comunidad cuya última
+     fecha de agenda quedó atrás no está «próxima»: está sin agenda
+     vigente, y esa es la cifra que hay que poder ver. */
+  const hoy = new Date(Date.now() - new Date().getTimezoneOffset()*6e4)
+                .toISOString().slice(0,10);
+  const ult = x => x.a[x.a.length-1];
+  const venc  = pend.filter(x=> ult(x) <  hoy);
+  const vig   = pend.filter(x=> ult(x) >= hoy);
+  const vencN = venc.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
+  const vigN  = vig.reduce((a,x)=>a+Math.max(0,x.meta-x.log),0);
+
+  const g=el('div','grid g3');
+  [[fmt(pendN), 'encuestas por aplicar', pend.length+' comunidades', 'b1'],
+   [fmt(vencN), 'sin agenda vigente',
+      venc.length+' comunidad(es) cuya última fecha prevista ya pasó', vencN? 'b0':'b2'],
+   [fmt(vigN),  'con agenda por delante',
+      'Cierre de campo: '+dm(CFG.cierre), 'b3']
+  ].forEach(([v,l,f,k])=>{
+    const d=el('div','kpi '+k);
+    d.append(el('div','l',l));
+    d.append(el('div','v', v));
+    d.append(el('div','f',f));
+    g.append(d);
+  });
+  c.append(g);
+
+  /* barras de comunidades pendientes por fecha de agenda */
+  const porFecha={};
+  pend.forEach(x=>{const k=x.a.length>1? dm(x.a[0])+'–'+dm(x.a[x.a.length-1]) : dm(x.a[0]);
+                   porFecha[k]=(porFecha[k]||0)+Math.max(0,x.meta-x.log)});
+  const r=el('div','rows'); r.style.marginTop='18px';
+  const mx=Math.max(...Object.values(porFecha));
+  Object.entries(porFecha).forEach(([k,v])=> fila(r,{nm:k, v, max:mx, cls:'p', den:false}));
+  c.append(el('h3','','Encuestas por aplicar según fecha de agenda'));
+  c.append(r);
+}
+
+/* ==================================================================
+   REGISTRO DE APLICACIONES
+   ------------------------------------------------------------------
+   Un formulario dentro del tablero, no una planilla embebida ni una
+   pestaña nueva. El código de registro viaja al servidor pero no vive
+   acá: validarlo en esta página sería teatro, porque cualquiera puede
+   leer el código fuente. Quien decide si es válido es el Apps Script.
+
+   Si no hay endpoint configurado, nada de esto se muestra y el
+   tablero queda solo de lectura.
+   ================================================================== */
+const REG = {
+  /* Lista única de aplicaciones cualitativas. La usan el formulario de
+     registro y la tabla de detalle del apartado 05: una sola definición
+     evita que una muestre algo distinto de la otra. */
+  items(){
+    const L=[];
+    CFG.gf.forEach(x=>L.push({b: x.t==='fun'?'Grupo focal funcionarios':'Grupo focal beneficiarios',
+                              n:x.n, det:x.s, meta:1, log:x.log, f:x.f, est:x.est, nt:x.nt}));
+    CFG.hv.forEach(x=>L.push({b:'Hoja de vida',  n:x.n, det:x.r, meta:1, log:x.log,
+                              f:x.f, est:x.est, nt:x.nt}));
+    CFG.obs.forEach(x=>L.push({b:'Observación',  n:x.n, det:x.r, meta:1, log:x.log,
+                              f:x.f, est:x.est, nt:x.nt}));
+    CFG.act.forEach(x=>L.push({b:'Entrevista a actores', n:x.g, det:x.d, meta:x.meta,
+                              log:x.log, f:x.f, est:x.est, nt:x.nt}));
+    return L;
+  },
+  llenarBloques(){
+    const sel=$('#reg-bloque'); const vistos=[];
+    REG.items().forEach(i=>{ if(!vistos.includes(i.b)) vistos.push(i.b) });
+    sel.innerHTML = vistos.map(b=>'<option>'+b+'</option>').join('');
+    REG.llenarNombres();
+  },
+  llenarNombres(){
+    const b=$('#reg-bloque').value;
+    const L=REG.items().filter(i=>i.b===b);
+    $('#reg-nombre').innerHTML = L.map(i=>'<option>'+i.n.replace(/</g,'&lt;')+'</option>').join('');
+    REG.mostrarEstado();
+  },
+  actual(){
+    const b=$('#reg-bloque').value, n=$('#reg-nombre').value;
+    return REG.items().find(i=>i.b===b && i.n===n);
+  },
+  /* Lo ya registrado sale de la columna «notas», que el receptor arma
+     solo con el detalle de cada aplicación. Mostrarlo antes de cargar
+     es lo que evita el duplicado, que es el error probable cuando dos
+     personas trabajan la misma categoría. */
+  yaRegistrado(i){
+    return String((i && i.nt) || '').split(' · ').map(s=>s.trim()).filter(Boolean);
+  },
+  pintarLista(){
+    const i=REG.actual(); const cont=$('#reg-lista'); if(!cont) return;
+    if(!i){ cont.innerHTML=''; return; }
+    const L=REG.yaRegistrado(i);
+    cont.innerHTML = L.length
+      ? '<ul>'+L.map(x=>'<li><span>'+x.replace(/</g,'&lt;')+'</span>'
+          +'<button class="quitar" data-x="'+x.replace(/"/g,'&quot;')+'">quitar</button></li>').join('')+'</ul>'
+      : '<div class="vacio">Todavía no hay aplicaciones registradas.</div>';
+  },
+  /* El campo cambia de nombre según el instrumento. Con una etiqueta
+     genérica —«qué se aplicó o a quién»— alguien escribió «1» y puso el
+     nombre en las notas: la etiqueta no decía qué se esperaba. Preguntar
+     lo concreto de cada bloque es lo que evita ese error. */
+  ETIQ: {
+    'Entrevista a actores':      ['¿A quién se entrevistó?', 'Institución y persona',
+                                  'Una entrevista por registro. Escribí la institución y, si la tenés, '
+                                 +'la persona: «PDH Río — Shesly Pineda». Si se hicieron dos, se registran '
+                                 +'de a una.'],
+    'Grupo focal beneficiarios': ['¿Dónde se hizo?', 'Sede o comunidades',
+                                  'La sede o las comunidades que participaron.'],
+    'Grupo focal funcionarios':  ['¿Dónde se hizo?', 'Sede o institución',
+                                  'La sede o la institución que participó.'],
+    'Hoja de vida':              ['¿A quién?', 'Nombre o perfil',
+                                  'La persona o el perfil de quien se levantó la hoja de vida.'],
+    'Observación':               ['¿Dónde se observó?', 'Espacio o actividad',
+                                  'El espacio o la actividad observada.']
+  },
+  etiquetar(b){
+    const e = REG.ETIQ[b] || ['¿Qué se aplicó?', 'Descripción breve', ''];
+    $('#reg-detalle-lbl').textContent = e[0];
+    $('#reg-detalle').placeholder = e[1];
+    $('#reg-ayuda').textContent = e[2];
+  },
+  mostrarEstado(){
+    const i=REG.actual(); if(!i) return;
+    $('#reg-estado').textContent = 'Registradas: '+i.log+' de '+i.meta
+      + (i.f? ' · agendada '+dm(i.f) : ' · sin fecha en el calendario');
+    REG.etiquetar(i.b);
+    REG.pintarLista();
+    $('#reg-detalle').value='';
+    if(i.f) $('#reg-fecha').value = i.f;
+  },
+  msg(txt, clase){
+    const m=$('#reg-msg'); m.textContent=txt; m.className='msg on '+clase;
+  },
+  /* pre = {b, n}: abre el formulario ya posicionado en una aplicación.
+     Es lo que hace el botón «Registrar» de cada fila del apartado 05,
+     para no obligar a buscar en dos desplegables lo que ya se está
+     mirando en la tabla. */
+  abrir(pre){
+    $('#reg-msg').className='msg';
+    $('#reg-codigo').value='';
+    REG.llenarBloques();
+    if(pre && pre.b){
+      $('#reg-bloque').value = pre.b;
+      REG.llenarNombres();
+      if(pre.n){ $('#reg-nombre').value = pre.n; REG.mostrarEstado(); }
+    }
+    $('#reg-bd').classList.add('on');
+    setTimeout(()=>$('#reg-'+(pre&&pre.n?'detalle':'bloque')).focus(),60);
+  },
+  cerrar(){ $('#reg-bd').classList.remove('on') },
+
+  /* El formulario ya no manda totales: manda UNA aplicación. El total
+     lo cuenta el receptor a partir de la hoja REGISTROS, así que dos
+     personas registrando la misma categoría ya no se pisan. */
+  async enviar(){ return REG.mandar('sumar', $('#reg-detalle').value.trim()) },
+  async quitar(det){ return REG.mandar('quitar', det) },
+
+  async mandar(accion, detalle){
+    const i=REG.actual();
+    const codigo=$('#reg-codigo').value.trim();
+    const quien=$('#reg-quien').value.trim();
+
+    if(!i)       return REG.msg('Elegí una aplicación.','err');
+    if(!detalle) return REG.msg(accion==='quitar' ? 'No se pudo identificar el registro.'
+                                : 'Falta completar «'+$('#reg-detalle-lbl').textContent+'».','err');
+    /* Un número solo en este campo significa que la persona todavía está
+       pensando en cantidades. Se avisa acá y no después del envío. */
+    if(accion!=='quitar' && /^\d+$/.test(detalle))
+      return REG.msg('Ahí no va una cantidad sino el nombre: '
+        +$('#reg-detalle-lbl').textContent.toLowerCase().replace(/[¿?]/g,'')
+        +'. Se registra una aplicación por vez y el total lo suma el sistema.','err');
+    if(!quien)   return REG.msg('Indicá quién reporta.','err');
+    if(!codigo)  return REG.msg('Falta el código de registro.','err');
+
+    const b=$('#reg-enviar'); const rot=b.textContent;
+    b.textContent = accion==='quitar' ? 'Quitando…' : 'Registrando…';
+    b.style.pointerEvents='none';
+    try{
+      /* text/plain evita el preflight CORS: con application/json el
+         navegador manda un OPTIONS que Apps Script no responde. */
+      const r = await fetch(ENDPOINT_REGISTRO, {
+        method:'POST', redirect:'follow',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({ accion, bloque:i.b, nombre:i.n, detalle,
+                               fecha:$('#reg-fecha').value||'', quien,
+                               notas:$('#reg-notas').value.trim(), codigo })
+      });
+      const j = await r.json();
+      if(!j.ok){
+        /* «Cantidad inválida» solo lo dice el receptor anterior, el que
+           esperaba un total. Si aparece, el problema no es lo que la
+           persona escribió sino que el servidor todavía no se actualizó:
+           conviene decirlo así y no dejarla corrigiendo el formulario. */
+        if(/cantidad inv/i.test(j.error||''))
+          return REG.msg('El servidor de registros todavía no está actualizado, por eso '
+            +'rechaza el envío. No es un error de lo que escribiste. Avisá a coordinación.','err');
+        return REG.msg(j.error || 'No se pudo registrar.','err');
+      }
+
+      REG.msg((accion==='quitar' ? '' : 'Registrado · ') + j.mensaje
+              + (j.aviso ? ' ' + j.aviso : ''), j.aviso ? 'warn' : 'ok');
+      $('#reg-detalle').value='';
+
+      /* Refresco optimista: el CSV publicado de Google tarda unos
+         minutos en reflejar el cambio y el tablero no debe mostrar el
+         valor viejo mientras tanto. El detalle viene del receptor, que
+         es quien sabe cómo quedó la lista. */
+      const nt = (j.lista||[]).map(x=>x.detalle).filter(Boolean).join(' · ');
+      REG.aplicarLocal(i.b, i.n, j.n, nt);
+      REG.pintarLista();
+      $('#reg-estado').textContent = 'Registradas: '+j.n+' de '+j.meta;
+      pintar();
+      if(accion!=='quitar') setTimeout(REG.cerrar, 2600);
+    }catch(e){
+      REG.msg('No se pudo contactar al servidor. Revisá la conexión.','err');
+    }finally{
+      b.textContent = rot; b.style.pointerEvents='';
+    }
+  },
+
+  /* refleja el cambio en memoria para que el tablero no muestre el
+     valor viejo mientras Google refresca el CSV publicado */
+  aplicarLocal(bloque, nombre, cant, nt){
+    const set = a => a.forEach(x=>{
+      if((x.n||x.g)!==nombre) return;
+      x.log = cant;
+      if(nt!=null) x.nt = nt;
+    });
+    if(bloque.startsWith('Grupo focal'))       set(CFG.gf);
+    else if(bloque==='Hoja de vida')           set(CFG.hv);
+    else if(bloque==='Observación')            set(CFG.obs);
+    else if(bloque==='Entrevista a actores')   set(CFG.act);
+  },
+
+  montar(){
+    if(!ENDPOINT_REGISTRO) return;           /* sin endpoint, solo lectura */
+    /* pintar() corre en cada repintado; el botón se monta una sola vez */
+    if(REG._montado) return;
+    REG._montado = true;
+    const cont=$('#nota-cuali');
+    if(cont) cont.insertAdjacentHTML('beforebegin',
+      '<div class="acts" style="margin-top:16px"><button class="act" id="reg-abrir" '
+      +'style="border:none;cursor:pointer">Registrar aplicación</button></div>');
+    $('#reg-abrir')?.addEventListener('click', ()=>REG.abrir());
+    /* La tabla del apartado 05 se repinta entera en cada actualización,
+       así que el listener va en el contenedor y no en cada botón. */
+    $('#tabla-cuali')?.addEventListener('click', e=>{
+      const b = e.target.closest('button.mini'); if(!b) return;
+      REG.abrir({b: b.dataset.b, n: b.dataset.n});
+    });
+    $('#reg-cancelar').addEventListener('click', REG.cerrar);
+    $('#reg-enviar').addEventListener('click', REG.enviar);
+    $('#reg-bloque').addEventListener('change', REG.llenarNombres);
+    $('#reg-nombre').addEventListener('change', REG.mostrarEstado);
+    $('#reg-lista').addEventListener('click', e=>{
+      const q = e.target.closest('.quitar'); if(!q) return;
+      REG.quitar(q.dataset.x);
+    });
+    $('#reg-bd').addEventListener('click', e=>{ if(e.target.id==='reg-bd') REG.cerrar() });
+    document.addEventListener('keydown', e=>{ if(e.key==='Escape') REG.cerrar() });
+  }
+};
+
+/* ==================================================================
+   PINTAR
+   ================================================================== */
+function pintar(){
+  totales();
+  const D = serie(VISTA);
+  $('#corte').textContent = 'Corte al '+larga(CFG.corte);
+  kpis(D); filtros();
+  curva($('#combo'), D, {alto:120});
+  $('#nota-vista').innerHTML = 'Vista: <b>'+VISTAS[VISTA].n+'</b> · '+fmt(D.n)+' de '+fmt(D.metaComp)
+    +' '+VISTAS[VISTA].u+' ('+pc(D.n,D.metaComp)+'%). Ritmo sobre días con campo: '+D.ritmoEf+'/día.'
+    + (D.sinFecha>0
+       ? ' '+D.sinFecha+' aplicación(es) aún sin fecha en el calendario, por lo que la curva prevista '
+         +'cierra en '+fmt(D.meta)+'.'
+       : '');
+  paneles(); instrumentos(); tablaCuali(); mapa(); tablaComunidades(); carga();
+  REG.montar();
+  $('#lnk-kobo').href = KOBO.ben;
+  $('#lnk-drive').href = DRIVE;
+  $('#pie').innerHTML = 'Datos al '+larga(CFG.corte)
+    +' · Cierre de campo previsto: '+larga(CFG.cierre)
+    +' · CliO Consulting para el Programa Conjunto Valle del Polochic.';
+}
+
+/* ==================================================================
+   CARGA EN VIVO
+   ------------------------------------------------------------------
+   El tablero arranca SIEMPRE con la instantánea embebida y pinta antes
+   de tocar la red. Si datos/datos.json responde, sus conteos sustituyen
+   a los de la instantánea y se repinta. Si no responde, o responde con
+   algo que no reconocemos, el tablero NO se rompe: sigue mostrando la
+   instantánea y lo declara en el chip de la cabecera. Un tablero que se
+   queda en blanco cuando falla la fuente es peor que uno que muestra
+   datos viejos y lo dice.
+   ================================================================== */
+function aplicarVivo(J){
+  if(!J || !J.instrumentos || !J.instrumentos.ben) throw new Error('esquema inesperado');
+
+  const ben = J.instrumentos.ben.porCom || {};
+  const lid = J.instrumentos.lid ? (J.instrumentos.lid.porCom||{}) : {};
+
+  /* Conteos por comunidad. Las comunidades que el puente no reporta
+     quedan en cero, no conservan el valor de la instantánea: si el
+     levantamiento existe, Kobo lo tiene. */
+  let reconocidas=0, huerfanas=[];
+  CFG.com.forEach(x=>{ x.log = ben[x.c] || 0; if(ben[x.c]) reconocidas++; });
+  CFG.lid.forEach(x=>{ x.log = lid[x.c] || 0; });
+
+  /* Comunidades que el puente reporta pero el plan no conoce. Es el
+     síntoma de un nombre escrito distinto en campo, y hay que verlo:
+     si se ignoran, el avance global queda corto sin explicación. */
+  Object.keys(ben).forEach(c=>{ if(!CFG.com.some(x=>x.c===c)) huerfanas.push(c+' ('+ben[c]+')'); });
+
+  /* Actores institucionales y funcionarios públicos: el puente los trae
+     desde el 11-ago. No traen comunidad utilizable, así que se toma el
+     total. sinConsent son envíos que llegaron sin consentimiento marcado
+     y quedan fuera del conteo: hay que poder verlos, porque un formulario
+     que no registra consentimiento es un problema de campo, no un cero. */
+  const I = J.instrumentos;
+  CFG.insLog     = I.ins ? (I.ins.total||0)      : 0;
+  CFG.funLog     = I.fun ? (I.fun.total||0)      : 0;
+  CFG.insSinCons = I.ins ? (I.ins.sinConsent||0) : 0;
+  CFG.funSinCons = I.fun ? (I.fun.sinConsent||0) : 0;
+
+  /* Serie diaria REAL. Sin el puente, el tablero atribuye todo lo
+     logrado en una comunidad a su fecha de aplicación: la curva sale
+     escalonada y el ritmo diario es una ficción. Con porComDia la serie
+     es el dato. */
+  CFG.diasBen = {};
+  const bd = J.instrumentos.ben.porComDia || {};
+  Object.keys(bd).forEach(k=>{ const f=k.split('|')[1];
+    CFG.diasBen[f] = (CFG.diasBen[f]||0) + bd[k]; });
+
+  /* Estado: el avance viene del dato, pero el CIERRE no.
+     Que una comunidad se dé por cerrada es una decisión operativa del
+     equipo de campo —el marco se agotó, no había más hogares elegibles—
+     y Kobo no puede saberlo. Por eso el puente adelanta el estado
+     (Pendiente → En curso → Completado) pero nunca reabre una comunidad
+     que el equipo ya declaró cerrada. */
+  CFG.com.forEach(x=>{
+    if(x.e==='Completado') return;              // cierre declarado: no se toca
+    if(x.log >= x.meta)     x.e='Completado';
+    else if(x.log > 0)      x.e='En curso';
+  });
+
+  if(J.corte)    CFG.corte    = J.corte;
+  if(J.generado) CFG.generado = J.generado.slice(0,10);
+  CFG.vivo = true;
+  CFG.avisosPuente = (J.avisos||[]).slice();
+  if(huerfanas.length) CFG.avisosPuente.push(
+    'El puente reporta '+huerfanas.length+' comunidad(es) que el plan no reconoce: '
+    +huerfanas.join(', ')+'. Casi siempre es el nombre escrito distinto en campo; '
+    +'se corrige agregando la variante al diccionario NORM del puente.');
+  CFG.reconocidas = reconocidas;
+  return J;
+}
+
+/* ------------------------------------------------------------------
+   Lector de CSV. Máquina de estados mínima: respeta comillas, comillas
+   escapadas ("") y saltos de línea dentro de celda, y quita el BOM que
+   antepone Google. Un split(',') falla en la primera comunidad que
+   lleve coma en el nombre —y hay varias.
+   ------------------------------------------------------------------ */
+function leerCSV(txt){
+  txt = txt.replace(/^\uFEFF/, '');
+  const filas=[]; let f=[], c='', q=false;
+  for(let i=0;i<txt.length;i++){
+    const ch=txt[i];
+    if(q){
+      if(ch==='"'){ if(txt[i+1]==='"'){c+='"';i++} else q=false }
+      else c+=ch;
+    } else if(ch==='"') q=true;
+    else if(ch===','){ f.push(c); c='' }
+    else if(ch==='\n'){ f.push(c); filas.push(f); f=[]; c='' }
+    else if(ch!=='\r') c+=ch;
+  }
+  if(c||f.length){ f.push(c); filas.push(f) }
+  return filas.filter(x=>x.some(v=>v.trim()!==''));
+}
+
+/* Convierte la planilla en los bloques que el tablero ya sabe pintar.
+   La columna «bloque» manda: si trae un valor que no reconocemos, esa
+   fila se ignora y se cuenta, para poder avisarlo. */
+function aplicarCualitativo(txt){
+  const filas = leerCSV(txt);
+  if(filas.length < 2) throw new Error('planilla vacía');
+  const h = filas[0].map(x=>x.trim().toLowerCase());
+  const ix = n => h.indexOf(n);
+  const cB=ix('bloque'), cN=ix('nombre'), cD=ix('detalle'),
+        cF=ix('fecha'), cM=ix('meta'), cR=ix('realizadas'),
+        cE=ix('estado'), cT=ix('notas');
+  if(cB<0 || cN<0) throw new Error('faltan columnas bloque/nombre');
+
+  const gf=[], hv=[], obs=[], act=[];
+  let ignoradas=0;
+  const num = v => { const n=parseInt((v||'').trim(),10); return isNaN(n)?0:n };
+  const fec = v => { v=(v||'').trim(); return /^\d{4}-\d{2}-\d{2}$/.test(v)? v : null };
+
+  filas.slice(1).forEach(r=>{
+    const b=(r[cB]||'').trim().toLowerCase();
+    const nom=(r[cN]||'').trim(); if(!nom) return;
+    const det=(r[cD]||'').trim(), f=fec(r[cF]);
+    const meta=cM>=0? Math.max(1,num(r[cM])) : 1;
+    const log =cR>=0? num(r[cR]) : 0;
+    /* est y nt viajan solo para la tabla de detalle del apartado 05:
+       quien está cargando necesita ver qué escribió, no solo el conteo. */
+    const est=cE>=0? (r[cE]||'').trim() : '';
+    const nt =cT>=0? (r[cT]||'').trim() : '';
+
+    if(b.startsWith('grupo focal benef'))      gf.push({n:nom, s:det, f, t:'ben', log, est, nt});
+    else if(b.startsWith('grupo focal func'))  gf.push({n:nom, s:det, f, t:'fun', log, est, nt});
+    else if(b.startsWith('hoja de vida'))      hv.push({n:nom, r:det, f, log, est, nt});
+    else if(b.startsWith('observaci'))         obs.push({n:nom, r:det, f, log, est, nt});
+    else if(b.startsWith('entrevista'))        act.push({g:nom, d:det, f, meta, log, est, nt});
+    else ignoradas++;
+  });
+
+  if(!gf.length && !hv.length && !obs.length && !act.length)
+    throw new Error('ninguna fila reconocible');
+
+  if(gf.length)  CFG.gf  = gf;
+  if(hv.length)  CFG.hv  = hv;
+  if(obs.length) CFG.obs = obs;
+  if(act.length) CFG.act = act;
+  CFG.cualiVivo = true;
+  CFG.cualiIgnoradas = ignoradas;
+  return {gf:gf.length, hv:hv.length, obs:obs.length, act:act.length, ignoradas};
+}
+
+function fuente(){
+  est('off','◷ Cargando datos…');
+
+  /* Las dos fuentes son independientes: si una falla, la otra igual se
+     aplica. Por eso no se encadenan con .then() sino que se resuelven
+     por separado y se repinta una sola vez al final. */
+  const pKobo = fetch(FUENTE_JSON, {cache:'no-store'})
+    .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+    .then(J=>{ aplicarVivo(J); return J; })
+    .catch(e=>{ console.warn('Puente Kobo no disponible:', e.message); return null; });
+
+  const pCuali = !FUENTE_CUALI ? Promise.resolve(null)
+    : fetch(FUENTE_CUALI, {cache:'no-store'})
+        .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+        .then(t=>aplicarCualitativo(t))
+        .catch(e=>{ console.warn('Planilla cualitativa no disponible:', e.message); return null; });
+
+  Promise.all([pKobo, pCuali]).then(([J, C])=>{
+    pintar();
+    if(J){
+      const h=(J.generado||'').slice(11,16);
+      est('on','● En vivo'+(C?' · Kobo y planilla':' · Kobo')+(h?' · '+h:''));
+    } else if(C){
+      est('on','● Planilla en vivo · Kobo sin responder');
+    } else {
+      est('wait','◷ Instantánea del '+dm(CFG.generado)+' · fuentes sin responder');
+    }
+  });
+}
+
+/* tema */
+(function(){
+  const b=$('#theme');
+  const set=d=>{document.documentElement.setAttribute('data-theme', d?'dark':'light');
+                b.textContent = d? 'Modo claro':'Modo oscuro'; pintar()};
+  let dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  b.onclick=()=>{dark=!dark; set(dark)};
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  b.textContent = dark? 'Modo claro':'Modo oscuro';
+})();
+
+pintar();
+fuente();
+</script>
+</body>
+</html>
