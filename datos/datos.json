@@ -3,8 +3,8 @@
   "9 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "26 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-09-04",
- "generado": "2026-09-09T05:40:50-06:00",
+ "corte": "2026-09-09",
+ "generado": "2026-09-09T09:52:59-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -14,6 +14,7 @@
     "El Recuerdo": 12,
     "El Rodeo": 10,
     "Guaxpom": 21,
+    "La Esperanza": 3,
     "Luchadores San Esteban": 5,
     "Pancús": 15,
     "Paraná": 10,
@@ -33,6 +34,7 @@
     "El Rodeo|2026-08-06": 9,
     "Guaxpom|2026-08-04": 1,
     "Guaxpom|2026-08-05": 20,
+    "La Esperanza|2026-09-09": 3,
     "Luchadores San Esteban|2026-08-03": 5,
     "Pancús|2026-08-04": 13,
     "Pancús|2026-09-01": 2,
@@ -47,7 +49,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 132
+   "total": 135
   },
   "fun": {
    "porCom": {
@@ -96,6 +98,7 @@
     "Bella Flor": 1,
     "El Rodeo": 1,
     "Guaxpom": 1,
+    "La Esperanza": 1,
     "Luchadores San Esteban": 1,
     "Pancús": 1,
     "Paraná": 1,
@@ -107,6 +110,7 @@
     "Bella Flor|2026-08-04": 1,
     "El Rodeo|2026-08-04": 1,
     "Guaxpom|2026-08-04": 1,
+    "La Esperanza|2026-09-09": 1,
     "Luchadores San Esteban|2026-08-03": 1,
     "Pancús|2026-08-04": 1,
     "Paraná|2026-08-14": 1,
@@ -119,7 +123,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 10
+   "total": 11
   }
  }
 }
