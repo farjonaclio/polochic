@@ -4,7 +4,7 @@
   "26 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-09-10",
- "generado": "2026-09-10T11:03:28-06:00",
+ "generado": "2026-09-10T13:55:48-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -14,7 +14,7 @@
     "El Recuerdo": 12,
     "El Rodeo": 10,
     "Guaxpom": 21,
-    "La Esperanza": 29,
+    "La Esperanza": 32,
     "Luchadores San Esteban": 5,
     "Pancús": 15,
     "Paraná": 10,
@@ -35,7 +35,7 @@
     "Guaxpom|2026-08-04": 1,
     "Guaxpom|2026-08-05": 20,
     "La Esperanza|2026-09-09": 20,
-    "La Esperanza|2026-09-10": 9,
+    "La Esperanza|2026-09-10": 12,
     "Luchadores San Esteban|2026-08-03": 5,
     "Pancús|2026-08-04": 13,
     "Pancús|2026-09-01": 2,
@@ -50,7 +50,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 161
+   "total": 164
   },
   "fun": {
    "porCom": {
