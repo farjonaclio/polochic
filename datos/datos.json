@@ -3,8 +3,8 @@
   "9 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "26 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-09-09",
- "generado": "2026-09-10T07:00:07-06:00",
+ "corte": "2026-09-10",
+ "generado": "2026-09-10T11:03:28-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -14,7 +14,7 @@
     "El Recuerdo": 12,
     "El Rodeo": 10,
     "Guaxpom": 21,
-    "La Esperanza": 20,
+    "La Esperanza": 29,
     "Luchadores San Esteban": 5,
     "Pancús": 15,
     "Paraná": 10,
@@ -35,6 +35,7 @@
     "Guaxpom|2026-08-04": 1,
     "Guaxpom|2026-08-05": 20,
     "La Esperanza|2026-09-09": 20,
+    "La Esperanza|2026-09-10": 9,
     "Luchadores San Esteban|2026-08-03": 5,
     "Pancús|2026-08-04": 13,
     "Pancús|2026-09-01": 2,
@@ -49,7 +50,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 152
+   "total": 161
   },
   "fun": {
    "porCom": {
