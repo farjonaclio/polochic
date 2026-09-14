@@ -3,8 +3,8 @@
   "9 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "27 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-09-11",
- "generado": "2026-09-14T07:37:03-06:00",
+ "corte": "2026-09-14",
+ "generado": "2026-09-14T13:00:16-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -21,7 +21,7 @@
     "Punto 15": 12,
     "Qotoxha 2": 1,
     "Qotoxhá, Río Polochic": 12,
-    "San Marcos": 21,
+    "San Marcos": 35,
     "Tinajas": 11
    },
    "porComDia": {
@@ -46,13 +46,14 @@
     "Qotoxha 2|2026-07-31": 1,
     "Qotoxhá, Río Polochic|2026-08-06": 12,
     "San Marcos|2026-09-11": 21,
+    "San Marcos|2026-09-14": 14,
     "Tinajas|2026-08-13": 11
    },
    "porEnc": {},
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 185
+   "total": 199
   },
   "fun": {
    "porCom": {
