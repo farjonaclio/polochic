@@ -1,10 +1,10 @@
 {
  "avisos": [
-  "11 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
+  "12 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "29 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
  "corte": "2026-09-17",
- "generado": "2026-09-17T13:48:30-06:00",
+ "generado": "2026-09-17T16:38:09-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
@@ -18,7 +18,7 @@
     "Luchadores San Esteban": 5,
     "Pancús": 15,
     "Paraná": 10,
-    "Pombaaq": 15,
+    "Pombaaq": 20,
     "Punto 15": 12,
     "Qotoxha 2": 11,
     "Qotoxhá, Río Polochic": 12,
@@ -42,7 +42,7 @@
     "Pancús|2026-08-04": 13,
     "Pancús|2026-09-01": 2,
     "Paraná|2026-08-14": 10,
-    "Pombaaq|2026-09-17": 15,
+    "Pombaaq|2026-09-17": 20,
     "Punto 15|2026-08-06": 1,
     "Punto 15|2026-08-11": 11,
     "Qotoxha 2|2026-07-31": 1,
@@ -57,7 +57,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 231
+   "total": 236
   },
   "fun": {
    "porCom": {
@@ -87,7 +87,7 @@
   },
   "ins": {
    "porCom": {
-    "(sin comunidad)": 11
+    "(sin comunidad)": 12
    },
    "porComDia": {
     "(sin comunidad)|2026-07-31": 1,
@@ -96,13 +96,14 @@
     "(sin comunidad)|2026-08-18": 1,
     "(sin comunidad)|2026-08-19": 3,
     "(sin comunidad)|2026-08-26": 1,
-    "(sin comunidad)|2026-09-16": 2
+    "(sin comunidad)|2026-09-16": 2,
+    "(sin comunidad)|2026-09-17": 1
    },
    "porEnc": {},
-   "sinComunidad": 11,
+   "sinComunidad": 12,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 11
+   "total": 12
   },
   "lid": {
    "porCom": {
