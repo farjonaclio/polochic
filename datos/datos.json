@@ -3,14 +3,14 @@
   "15 registro(s) de Encuesta para Actores Institucionales sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py.",
   "30 registro(s) de Encuesta a Funcionarios Públicos sin comunidad reconocible. Revisar el diccionario NORM en scripts/puente_kobo.py."
  ],
- "corte": "2026-09-21",
- "generado": "2026-09-26T12:58:29-06:00",
+ "corte": "2026-09-26",
+ "generado": "2026-09-26T15:54:59-06:00",
  "geo": {},
  "instrumentos": {
   "ben": {
    "porCom": {
     "Agua Caliente": 9,
-    "Bella Flor": 14,
+    "Bella Flor": 15,
     "El Recuerdo": 12,
     "El Rodeo": 10,
     "Guaxpom": 21,
@@ -32,6 +32,7 @@
     "Bella Flor|2026-08-03": 1,
     "Bella Flor|2026-08-04": 11,
     "Bella Flor|2026-08-13": 2,
+    "Bella Flor|2026-09-26": 1,
     "El Recuerdo|2026-08-03": 12,
     "El Rodeo|2026-08-05": 1,
     "El Rodeo|2026-08-06": 9,
@@ -60,7 +61,7 @@
    "sinComunidad": 0,
    "sinConsent": 0,
    "sinFecha": 0,
-   "total": 247
+   "total": 248
   },
   "fun": {
    "porCom": {
